@@ -2,7 +2,7 @@ package ModernTimes;
 use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
-
+use Universo::ModernTimes::Builder::Personaje;
 
 sub init {
   my $self = shift;

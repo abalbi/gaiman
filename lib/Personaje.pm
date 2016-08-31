@@ -1,5 +1,6 @@
 package Personaje;
 use strict;
+use JSON;
 use fields qw(_atributos);
 our $AUTOLOAD;
 	sub new {
@@ -33,7 +34,9 @@ our $AUTOLOAD;
         valor => undef
       } if !exists $self->{_atributos}->{$key};
       $self->{_atributos}->{$key}->{valor} = $valor; 
+      Gaiman->logger->trace("Se asigno ",$self->name,": ",encode_json({$key => $valor}));
     }
+    return 'NONAME' if $key eq 'name' &&  !$self->{_atributos}->{$key}->{valor};
     return $self->{_atributos}->{$key}->{valor};
   }
 

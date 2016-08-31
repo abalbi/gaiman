@@ -9,7 +9,7 @@ use Entorno;
 use Universo;
 use Universo::ModernTimes;
 
-
+srand(3);
 Log::Log4perl->init("log.conf");
 our $logger = Log::Log4perl->get_logger("runner");
 
