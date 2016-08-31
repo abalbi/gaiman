@@ -4,6 +4,7 @@ use fields qw();
 use Log::Log4perl;
 use Log::Log4perl::Level;
 
+use Personaje;
 use Universo;
 use Universo::ModernTimes;
 
