@@ -10,5 +10,8 @@ sub init {
     nombre => 'sex',
     validos => [qw(f m)],
   });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'name',
+  });
 }
 1;

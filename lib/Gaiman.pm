@@ -5,6 +5,7 @@ use Log::Log4perl;
 use Log::Log4perl::Level;
 
 use Personaje;
+use Entorno;
 use Universo;
 use Universo::ModernTimes;
 

@@ -36,4 +36,12 @@ our $AUTOLOAD;
     }
     return $self->{_atributos}->{$key}->{valor};
   }
+
+  sub es {
+    my $self = shift;
+    my $key = shift;
+    return 1 if $self->name eq $key;
+    return 0;
+  }
+
 1;
