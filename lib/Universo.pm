@@ -1,5 +1,6 @@
 package Universo;
-use fields qw();
+use Data::Dumper;
+use fields qw(_atributo_tipos);
 
 our $actual;
   sub new {
@@ -7,6 +8,8 @@ our $actual;
     my $args = shift;
     $self = fields::new($self);
     Gaiman->logger->info("Se instancio ",ref $self);
+    $self->{_atributo_tipos} = [];
+    $self->init;
     $actual = $self;
     return $self;
   }
@@ -14,5 +17,21 @@ our $actual;
   sub actual {
   	my $class = shift;
   	return $actual;
+  }
+
+  sub atributo_tipo {
+  	my $self = shift;
+  	my $key = shift;
+  	my $atributo_tipos = [];
+  	foreach my $atributo_tipo (@{$self->atributo_tipos}) {
+  		push @{$atributo_tipos}, $atributo_tipo if $atributo_tipo->es($key);
+  	}
+  	return $atributo_tipos->[0] if scalar @{$atributo_tipos} == 1;
+  	return $atributo_tipos;
+  }
+
+  sub atributo_tipos {
+  	my $self = shift;
+  	return $self->{_atributo_tipos};
   }
 1;
