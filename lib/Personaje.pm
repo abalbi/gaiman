@@ -55,7 +55,7 @@ our $AUTOLOAD;
   sub json {
     my $self = shift;
     my $hash = {};
-    foreach my $key (keys %{$self->atributos}) {
+    foreach my $key (sort keys %{$self->atributos}) {
       $hash->{$key} = $self->atributos->{$key}->{valor}; 
     }
     return encode_json($hash);

@@ -29,6 +29,12 @@ sub init {
       return $nombres;
     }
   });
+  push @{$self->atributo_tipos}, map {ModernTimes::Atributo::Tipo->new({
+    nombre => $_,
+    validos => [1..5],
+    subcategoria => 'virtues',
+  })} qw(conviction instinct courage);
+  Gaiman->logger->trace('Se agregaron los atributo_tipos: ',join ',', map {$_->nombre} @{$self->atributo_tipos});
 }
 
 1;
