@@ -25,7 +25,6 @@ our $actual;
   	my $obj = shift;
   	if ($obj->isa('Personaje')) {
       return 0 if $self->buscar($obj->name);
-      print STDERR Dumper $self->buscar($obj->name);
   		return push @{$self->personajes}, $obj if $obj->isa('Personaje');
   	} 
   }

@@ -1,5 +1,5 @@
 package ModernTimes::Builder::Personaje;
-use fields qw(_personajes _argumentos);
+use fields qw(_personaje _argumentos _estructura);
 use strict;
 use Data::Dumper;
 use JSON;
@@ -16,8 +16,15 @@ our $actual;
   sub personaje {
     my $self = shift;
   	my $valor = shift;
-  	$self->{_personajes} = $valor if defined $valor;
-  	return $self->{_personajes};
+  	$self->{_personaje} = $valor if defined $valor;
+  	return $self->{_personaje};
+  }
+
+  sub estructura {
+    my $self = shift;
+    my $valor = shift;
+    $self->{_estructura} = $valor if defined $valor;
+    return $self->{_estructura};
   }
 
   sub argumentos {
@@ -31,17 +38,38 @@ our $actual;
     my $self = shift;
     my $args = shift;
     $self->argumentos($args);
-	$self->asignar_atributo('sex');
-	return $self;  	
+    $self->estructura({});
+	  $self->preparar('sex');
+    $self->asignar;
+    return $self;  	
   }
 
-  sub asignar_atributo {
+  sub preparar {
     my $self = shift;
-	my $key = shift;
-	return if $self->personaje->$key;
-	my $validos = Universo->actual->atributo_tipo($key)->validos;
-	my $valor = $self->argumentos->{$key} if exists $self->argumentos->{$key};
-	$valor = $validos->[int rand scalar @{$validos}] if !$valor;
-	$self->personaje->$key($valor); 	
+  	my $key = shift;
+  	return if $self->personaje->$key;
+    my $atributo = Universo->actual->atributo_tipo($key);
+    my $valor;
+    if (exists $self->argumentos->{$key}){
+      $valor = $self->argumentos->{$key};
+      if(!$atributo->validar($valor)) {
+        my $warn = "No es valido el valor $valor para el atributo $key";
+        Gaiman->logger->warn($warn);
+        warn $warn;
+        $valor = undef;
+      }
+    }
+    if (!$valor) {
+      $valor = $atributo->alguno;
+    }
+  	$self->estructura->{$key} = $valor if defined $valor;
+  }
+
+  sub asignar {
+    my $self = shift;
+    foreach my $key (keys %{$self->estructura}) {
+      my $valor = $self->estructura->{$key};
+      $self->personaje->$key($valor);   
+    }
   }
 1;

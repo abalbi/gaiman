@@ -28,6 +28,16 @@ $builder->build({sex => 'f'});
 is($personaje->sex,'f', 'el personaje tiene sex f');
 
 #################################################
+#Cuando ejecuto build en un ModernTimes::Builder::Personaje en el personaje definiendo un sex invalido
+$personaje = Personaje->new;
+my $builder = ModernTimes::Builder::Personaje->new;
+$builder->personaje($personaje);
+$builder->build({sex => 'INVALID'});
+#Entonces el personaje tiene sex f
+isnt($personaje->sex,'INVALID', 'el personaje NO tiene sex INVALID');
+
+
+#################################################
 #Cuando ejecuto build en un ModernTimes::Builder::Personaje en el personaje con sex definido
 $personaje = Personaje->new;
 $personaje->sex('f');
@@ -36,3 +46,4 @@ $builder->personaje($personaje);
 $builder->build;
 #Entonces el personaje tiene sex f
 is($personaje->sex,'f', 'el personaje tiene sex f');
+
