@@ -40,6 +40,11 @@ our $AUTOLOAD;
     return $self->{_atributos}->{$key}->{valor};
   }
 
+  sub atributos {
+    my $self = shift;
+    return $self->{_atributos};
+  }
+
   sub es {
     my $self = shift;
     my $key = shift;
@@ -47,4 +52,12 @@ our $AUTOLOAD;
     return 0;
   }
 
+  sub json {
+    my $self = shift;
+    my $hash = {};
+    foreach my $key (keys %{$self->atributos}) {
+      $hash->{$key} = $self->atributos->{$key}->{valor}; 
+    }
+    return encode_json($hash);
+  }
 1;

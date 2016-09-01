@@ -76,5 +76,6 @@ our $actual;
       my $valor = $self->estructura->{$key};
       $self->personaje->$key($valor);   
     }
+    Gaiman->logger->info('Se construyo ', $self->personaje->name, ': ', $self->personaje->json);
   }
 1;
