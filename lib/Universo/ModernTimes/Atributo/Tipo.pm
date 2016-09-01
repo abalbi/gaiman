@@ -1,15 +1,16 @@
 package ModernTimes::Atributo::Tipo;
 use strict;
-use fields qw(_nombre _validos _posibles _subcategoria);
+use fields qw(_nombre _validos _posibles _subcategoria _categoria);
 
 sub new {
 	my $self = shift;
 	my $args = shift;
 	$self = fields::new($self);
-  $self->{_nombre} = $args->{nombre};
-  $self->{_validos} = $args->{validos};
-  $self->{_posibles} = $args->{posibles};
-  $self->{_subcategoria} = $args->{subcategoria};
+	$self->{_nombre} = $args->{nombre};
+	$self->{_validos} = $args->{validos};
+	$self->{_posibles} = $args->{posibles};
+	$self->{_subcategoria} = $args->{subcategoria};
+	$self->{_categoria} = $args->{categoria};
 	Gaiman->logger->trace("Se instancio ",ref $self);
 	return $self;
 }
@@ -18,12 +19,18 @@ sub es {
 	my $key = shift;
 	return 1 if $self->nombre eq $key;
 	return 1 if $self->subcategoria eq $key;
+	return 1 if $self->categoria eq $key;
 	return 0;
 }
 
 sub nombre {
   my $self = shift;
   return $self->{_nombre};
+}
+
+sub categoria {
+  my $self = shift;
+  return $self->{_categoria};
 }
 
 sub subcategoria {

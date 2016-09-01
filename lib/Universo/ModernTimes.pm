@@ -34,6 +34,24 @@ sub init {
     validos => [1..5],
     subcategoria => 'virtues',
   })} qw(conviction instinct courage);
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+    nombre => $_, 
+    validos => [1..5], 
+    categoria => 'attribute',
+    subcategoria => 'physical',
+  })} qw(strengh dexterity stamina);
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+    nombre => $_, 
+    validos => [1..5], 
+    categoria => 'attribute',
+    subcategoria => 'social',
+  })} qw(manipulation appearance charisma);
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+    nombre => $_, 
+    validos => [1..5], 
+    categoria => 'attribute',
+    subcategoria => 'mental',
+  })} qw(intelligence perception wits);
   Gaiman->logger->trace('Se agregaron los atributo_tipos: ',join ',', map {$_->nombre} @{$self->atributo_tipos});
 }
 

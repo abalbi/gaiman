@@ -3,6 +3,7 @@ use fields qw(_personaje _argumentos _estructura);
 use strict;
 use Data::Dumper;
 use JSON;
+use List::Util qw(shuffle);
 our $actual;
   sub new {
     my $self = shift;
@@ -42,6 +43,7 @@ our $actual;
     $self->preparar('sex');
     $self->preparar('name');
     $self->preparar('virtues', 10);
+    $self->preparar('attribute', [10,8,6]);
     $self->asignar;
     return $self;  	
   }
@@ -51,8 +53,10 @@ our $actual;
     my $key = shift;
     my $arg = shift;
     return $self->preparar_atributo($key) if not defined $arg;
-    return $self->preparar_subcategoria($key, $arg);
+    return $self->preparar_subcategoria($key, $arg) if defined $arg && not ref $arg;
+    return $self->preparar_categoria($key, $arg) if defined $arg && ref $arg eq 'ARRAY';
   }
+
 
   sub atributos_nombres {
     my $self = shift;
@@ -68,6 +72,48 @@ our $actual;
     map {$sum += $self->estructura->{$_}} @$keys;
     return $sum;
   }
+
+  sub preparar_categoria {
+    my $self = shift;
+    my $key = shift;
+    my $valores = shift;
+    my $temp = [@{$valores}];
+    my $atributos = Universo->actual->atributo_tipo($key);
+    my $hash = {};
+    foreach my $atributo (@{$atributos}) {
+      my $key = $atributo->nombre;
+      $hash->{$atributo->subcategoria} = {min => 0} if !$hash->{$atributo->subcategoria};
+      if ($self->personaje->$key) {
+        $hash->{$atributo->subcategoria}->{min} += $self->personaje->$key; 
+      } else {
+        if ($self->argumentos->{$key}) {
+          $hash->{$atributo->subcategoria}->{min} += $self->argumentos->{$key}; 
+        } else {
+          $hash->{$atributo->subcategoria}->{min} += $atributo->validos->[0];
+        }
+      }
+    }
+    foreach my $key2 (keys %$hash) {
+      my $subcategoria = $hash->{$key2};
+      $subcategoria->{rango} = [grep {$_ > $subcategoria->{min}} @$valores];
+      if(!scalar @{$subcategoria->{rango}}) {
+        my $error = "Los puntos preasignados($subcategoria->{min}) estan fuera de rango (".join(',',@{$valores}).")";
+        Gaiman->logger->error($error);
+        die $error;
+      }
+    }
+    foreach my $subcategoria (values %$hash) {
+      $subcategoria->{asignado} = [shuffle(@{$subcategoria->{rango}})]->[0];
+      $subcategoria->{rango} = [];
+      foreach my $subcat (values %$hash) {
+        next if $subcat->{asignado};
+        $subcat->{rango} = [grep {$_ ne $subcategoria->{asignado}} @{$subcat->{rango}}];
+      }
+    }
+    foreach my $key (keys %$hash) {
+      $self->preparar_subcategoria($key, $hash->{$key}->{asignado});
+    }
+  } 
 
   sub preparar_subcategoria {
     my $self = shift;
