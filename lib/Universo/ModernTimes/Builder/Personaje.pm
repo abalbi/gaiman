@@ -39,7 +39,8 @@ our $actual;
     my $args = shift;
     $self->argumentos($args);
     $self->estructura({});
-	  $self->preparar('sex');
+    $self->preparar('sex');
+    $self->preparar('name');
     $self->asignar;
     return $self;  	
   }
@@ -47,7 +48,11 @@ our $actual;
   sub preparar {
     my $self = shift;
   	my $key = shift;
-  	return if $self->personaje->$key;
+    if ($self->personaje->$key) {
+      if ($self->personaje->$key ne 'NONAME') {
+        return;
+      }
+    }
     my $atributo = Universo->actual->atributo_tipo($key);
     my $valor;
     if (exists $self->argumentos->{$key}){
@@ -60,7 +65,7 @@ our $actual;
       }
     }
     if (!$valor) {
-      $valor = $atributo->alguno;
+      $valor = $atributo->alguno($self->estructura);
     }
   	$self->estructura->{$key} = $valor if defined $valor;
   }
