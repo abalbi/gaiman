@@ -42,6 +42,7 @@ our $actual;
     $self->estructura({});
     $self->preparar('sex');
     $self->preparar('name');
+    $self->preparar('description');
     $self->preparar('virtues', 10);
     $self->preparar('attribute', [10,8,6]);
     $self->asignar;

@@ -1,6 +1,6 @@
 package ModernTimes::Atributo::Tipo;
 use strict;
-use fields qw(_nombre _validos _posibles _subcategoria _categoria);
+use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno);
 
 sub new {
 	my $self = shift;
@@ -11,6 +11,7 @@ sub new {
 	$self->{_posibles} = $args->{posibles};
 	$self->{_subcategoria} = $args->{subcategoria};
 	$self->{_categoria} = $args->{categoria};
+	$self->{_alguno} = $args->{alguno};
 	Gaiman->logger->trace("Se instancio ",ref $self);
 	return $self;
 }
@@ -26,6 +27,11 @@ sub es {
 sub nombre {
   my $self = shift;
   return $self->{_nombre};
+}
+
+sub build {
+  my $self = shift;
+  return $self->{_build};
 }
 
 sub categoria {
@@ -65,6 +71,9 @@ sub validar {
 sub alguno {
   my $self = shift;
   my $contexto = shift;
+  if($self->{_alguno}) {
+  	return &{$self->{_alguno}}($contexto);
+  }
 	if($self->validos) {
 		my $valor = $self->validos->[int rand scalar @{$self->validos}];
 		return $valor;
