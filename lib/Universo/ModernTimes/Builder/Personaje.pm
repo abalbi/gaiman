@@ -93,14 +93,23 @@ our $actual;
         }
       }
     }
+    Gaiman->logger->trace('preparar_categoria: MINIMOS: '.encode_json($hash));
+    my $rangos_con_un_valor = 0;
     foreach my $key2 (keys %$hash) {
       my $subcategoria = $hash->{$key2};
-      $subcategoria->{rango} = [grep {$_ > $subcategoria->{min}} @$valores];
+      $subcategoria->{rango} = [grep {$_ >= $subcategoria->{min}} @$valores];
+      $rangos_con_un_valor++ if scalar @{$subcategoria->{rango}} == 1;
       if(!scalar @{$subcategoria->{rango}}) {
         my $error = "Los puntos preasignados($subcategoria->{min}) estan fuera de rango (".join(',',@{$valores}).")";
         Gaiman->logger->error($error);
         die $error;
       }
+    }
+    Gaiman->logger->trace('preparar_categoria: RANGOS: '.encode_json($hash));
+    if($rangos_con_un_valor > 1) {
+      my $error = "Se encontraron 2 o mas subcategorias que solo pueden usar un valor. Esto es imposible";
+      Gaiman->logger->error($error);
+      die $error;
     }
     foreach my $subcategoria (values %$hash) {
       $subcategoria->{asignado} = [shuffle(@{$subcategoria->{rango}})]->[0];
@@ -110,6 +119,7 @@ our $actual;
         $subcat->{rango} = [grep {$_ ne $subcategoria->{asignado}} @{$subcat->{rango}}];
       }
     }
+    Gaiman->logger->trace('preparar_categoria: ASIGNACION: '.encode_json($hash));
     foreach my $key (keys %$hash) {
       $self->preparar_subcategoria($key, $hash->{$key}->{asignado});
     }
@@ -119,6 +129,11 @@ our $actual;
     my $self = shift;
     my $key = shift;
     my $valor = shift;
+    if(!$valor) {
+      my $error = "No se puede preparar una subcategoria si no se pasa un valor";
+      Gaiman->logger->error($error);
+      die $error;
+    }
     my $atributos = Universo->actual->atributo_tipo($key);
     my @filtrados;
     foreach my $atributo (@{$atributos}) {
