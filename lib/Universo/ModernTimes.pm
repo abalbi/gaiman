@@ -33,14 +33,24 @@ sub init {
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'description',
     alguno => sub {
-      print STDERR Dumper @_;
       my $atributo_tipo = shift;
       my $personaje = shift;
       my $description = {};
+      my $tallas = { XS => 1, S => 2, M => 3,L => 4,XL => 5};
+      my $talla = qw(XS S M L XL)[int rand 5];
       $description->{pelo}->{color} = shuffle(qw(moroch[a|o] rubi[a|o] castañ[a|o] peliroj[a|o] ));
       $description->{ojos}->{color} = shuffle(qw(marrones azules violetas verdes));
       $description->{pelo}->{largo} = shuffle(qw(corto melena largo));
-      $description->{medidas}->{alto} = (int(rand(50)) + 150)/100;
+      $description->{medidas}->{talla} = $talla;
+      $description->{medidas}->{altura} = ($personaje->{sex} eq 'f' ? 150 : 155);
+      $description->{medidas}->{altura} += ($tallas->{$talla} * 5);
+      $description->{medidas}->{altura} += ([-1,1]->[int rand 2]) * (5 - $personaje->{appearance});
+      $description->{medidas}->{peso} = $description->{medidas}->{altura} - 90; 
+      $description->{medidas}->{peso} += ([-1,1]->[int rand 2]) * (5 - $personaje->{appearance}) * 2;
+      $description->{medidas}->{busto} = 82;
+      $description->{medidas}->{busto} += ($tallas->{$talla} * ($personaje->{sex} eq 'f' ? 2 : 5));
+      $description->{medidas}->{busto} = 82;
+      $description->{medidas}->{busto} += ($tallas->{$talla} * ($personaje->{sex} eq 'f' ? 2 : 5));
       $description->{pelo}->{forma} = shuffle(qw(lacio ondulado enrulado));
       return $description;
     }

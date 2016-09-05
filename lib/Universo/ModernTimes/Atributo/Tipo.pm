@@ -72,7 +72,7 @@ sub alguno {
   my $self = shift;
   my $contexto = shift;
   if($self->{_alguno}) {
-  	return &{$self->{_alguno}}($contexto);
+  	return &{$self->{_alguno}}($self, $contexto);
   }
 	if($self->validos) {
 		my $valor = $self->validos->[int rand scalar @{$self->validos}];

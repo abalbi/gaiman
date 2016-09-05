@@ -63,7 +63,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 }
 
 {
-	#Cuando le hago build en un personaje con wits 5, perception 4, appearance 5 y charisma 5
+	#Cuando le hago build en un personaje con wits 5, perception 4, appearance 5 y charisma 4
 	my $personaje = Personaje->new;
 	$personaje->appearance(5);
 	$personaje->charisma(4);
@@ -76,4 +76,22 @@ my $builder = ModernTimes::Builder::Personaje->new;
 		$builder->build;
 	} 'se disparar un error por que dos categorias tiene una sola opcion posible';
 	like $@, qr/Se encontraron 2 o mas subcategorias que solo pueden usar un valor. Esto es imposible/, 'con un mensaje correspondiente';
+}
+
+{
+	#Cuando le hago build en un personaje con wits 5, perception 2, appearance 5,  charisma 4, dexterity 2 y stamina 5
+	my $personaje = Personaje->new;
+	$personaje->appearance(5);
+	$personaje->charisma(4);
+	$personaje->wits(5);
+	$personaje->perception(2);
+	$personaje->stamina(5);
+	$personaje->dexterity(2);
+	my $builder = ModernTimes::Builder::Personaje->new;
+	$builder->personaje($personaje);
+	#Entonces se disparar un error por que se trata de asignar 2 veces el mismo valor a dos subcategorias distintas
+	dies_ok {
+		$builder->build;
+	} 'Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito';
+	like $@, qr/Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito/, 'con un mensaje correspondiente';
 }
