@@ -15,7 +15,7 @@ use Data::Dumper;
     my $method = $AUTOLOAD;
     my $self = shift;
     $method =~ s/.*:://;
-    $method =~ s/_(\w+)$//;
+    $method =~ s/_(tipo)$//;
     my $tipo = $1;
     my $atributo = $method if grep {$_->nombre eq $method} @{Universo->actual->atributo_tipos};
     if($atributo) {

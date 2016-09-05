@@ -78,6 +78,25 @@ sub init {
     categoria => 'attribute',
     subcategoria => 'mental',
   })} qw(intelligence perception wits);
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+    nombre => $_, 
+    validos => [0..5], 
+    categoria => 'ability',
+    subcategoria => 'talent',
+  })} qw(athletics brawl dodge empathy expression intimidation leadership streetwise subterfuge);
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+    nombre => $_, 
+    validos => [0..5], 
+    categoria => 'ability',
+    subcategoria => 'skill',
+  })} qw(animal_ken crafts drive etiquette firearms melee performance security stealth survival);
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+    nombre => $_, 
+    validos => [0..5], 
+    categoria => 'ability',
+    subcategoria => 'knowledge',
+  })} qw(academics bureaucracy computer finance investigation law linguistics medicine occult politics research science);
+
   Gaiman->logger->trace('Se agregaron los atributo_tipos: ',join ',', map {$_->nombre} @{$self->atributo_tipos});
 }
 

@@ -43,6 +43,7 @@ our $actual;
     $self->preparar('name');
     $self->preparar('virtues', 10);
     $self->preparar('attribute', [10,8,6]);
+    $self->preparar('ability', [13,9,5]);
     $self->preparar('description');
     $self->asignar;
     return $self;  	
