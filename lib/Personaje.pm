@@ -3,6 +3,7 @@ use strict;
 use JSON;
 use fields qw(_atributos);
 our $AUTOLOAD;
+use Data::Dumper;
 	sub new {
 		my $self = shift;
 		my $args = shift;

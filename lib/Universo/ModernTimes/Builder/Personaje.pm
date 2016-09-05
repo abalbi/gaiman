@@ -3,7 +3,6 @@ use fields qw(_personaje _argumentos _estructura);
 use strict;
 use Data::Dumper;
 use JSON;
-use List::Util qw(shuffle);
 our $actual;
   sub new {
     my $self = shift;
@@ -42,9 +41,9 @@ our $actual;
     $self->estructura({});
     $self->preparar('sex');
     $self->preparar('name');
-    $self->preparar('description');
     $self->preparar('virtues', 10);
     $self->preparar('attribute', [10,8,6]);
+    $self->preparar('description');
     $self->asignar;
     return $self;  	
   }
@@ -62,7 +61,7 @@ our $actual;
   sub atributos_nombres {
     my $self = shift;
     my $atributos = shift;
-    return [map { $_->nombre } @$atributos];
+    return [sort map { $_->nombre } @$atributos];
   }
 
   sub sum {
@@ -83,7 +82,7 @@ our $actual;
     my $hash = {};
     foreach my $atributo (@{$atributos}) {
       my $key = $atributo->nombre;
-      $hash->{$atributo->subcategoria} = {min => 0} if !$hash->{$atributo->subcategoria};
+      $hash->{$atributo->subcategoria} = {min => 0, subcategoria => $atributo->subcategoria} if !$hash->{$atributo->subcategoria};
       if ($self->personaje->$key) {
         $hash->{$atributo->subcategoria}->{min} += $self->personaje->$key; 
       } else {
@@ -96,7 +95,7 @@ our $actual;
     }
     Gaiman->logger->trace('preparar_categoria: MINIMOS: '.encode_json($hash));
     my $rangos_con_un_valor = 0;
-    foreach my $key2 (keys %$hash) {
+    foreach my $key2 (sort keys %$hash) {
       my $subcategoria = $hash->{$key2};
       $subcategoria->{rango} = [grep {$_ >= $subcategoria->{min}} @$valores];
       $rangos_con_un_valor++ if scalar @{$subcategoria->{rango}} == 1;
@@ -112,16 +111,26 @@ our $actual;
       Gaiman->logger->error($error);
       die $error;
     }
-    foreach my $subcategoria (values %$hash) {
-      $subcategoria->{asignado} = [shuffle(@{$subcategoria->{rango}})]->[0];
+    my $ordenados = [sort {$b->{min} <=> $a->{min}} values %$hash];
+    my $ordenados = [sort {$b->{subcategoria} cmp $a->{subcategoria}} values %$hash];
+    foreach my $subcategoria (@$ordenados) { 
+      my $asignado = $subcategoria->{rango}->[int rand scalar @{$subcategoria->{rango}}];
+      my $temp2 = [grep {$asignado != $_} @$temp];
+      if(scalar @$temp == scalar @$temp2) {
+        my $error = "Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito";
+        Gaiman->logger->error($error);
+        die $error;
+      }
+      $temp = $temp2;
+      $subcategoria->{asignado} = $asignado;
       $subcategoria->{rango} = [];
-      foreach my $subcat (values %$hash) {
+      foreach my $subcat (sort {$a->{key} cmp $b->{key}} values %$hash) {
         next if $subcat->{asignado};
         $subcat->{rango} = [grep {$_ ne $subcategoria->{asignado}} @{$subcat->{rango}}];
       }
     }
     Gaiman->logger->trace('preparar_categoria: ASIGNACION: '.encode_json($hash));
-    foreach my $key (keys %$hash) {
+    foreach my $key (sort keys %$hash) {
       $self->preparar_subcategoria($key, $hash->{$key}->{asignado});
     }
   } 
@@ -175,7 +184,6 @@ our $actual;
     }
   }
 
-
   sub preparar_atributo {
     my $self = shift;
   	my $key = shift;
@@ -203,7 +211,7 @@ our $actual;
 
   sub asignar {
     my $self = shift;
-    foreach my $key (keys %{$self->estructura}) {
+    foreach my $key (sort keys %{$self->estructura}) {
       my $valor = $self->estructura->{$key};
       $self->personaje->$key($valor) if $valor ne $self->personaje->$key;   
     }
