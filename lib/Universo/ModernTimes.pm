@@ -3,6 +3,7 @@ use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
 use Universo::ModernTimes::Builder::Personaje;
+use Universo::ModernTimes::Personaje;
 use Data::Dumper;
 use List::Util qw(shuffle);
 
@@ -31,29 +32,46 @@ sub init {
     }
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'description',
+    nombre => 'heir_color',
+    categoria => 'description',
+    subcategoria => 'heir',
+    validos => [qw(moroch[a|o] rubi[a|o])],
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'heir_long',
+    categoria => 'description',
+    subcategoria => 'heir',
+    validos => [qw(largo corto)],
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'heir_form',
+    categoria => 'description',
+    subcategoria => 'heir',
+    validos => [qw(lacio ondulado enrulado)],
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'size',
+    categoria => 'description',
+    subcategoria => 'body',
+    validos => [qw(XS S M L XL)],
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'height',
+    categoria => 'description',
+    subcategoria => 'body',
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $description = {};
-      my $tallas = { XS => 1, S => 2, M => 3,L => 4,XL => 5};
-      my $talla = qw(XS S M L XL)[int rand 5];
-      $description->{pelo}->{color} = shuffle(qw(moroch[a|o] rubi[a|o] castañ[a|o] peliroj[a|o] ));
-      $description->{ojos}->{color} = shuffle(qw(marrones azules violetas verdes));
-      $description->{pelo}->{largo} = shuffle(qw(corto melena largo));
-      $description->{medidas}->{talla} = $talla;
-      $description->{medidas}->{altura} = ($personaje->{sex} eq 'f' ? 150 : 155);
-      $description->{medidas}->{altura} += ($tallas->{$talla} * 5);
-      $description->{medidas}->{altura} += ([-1,1]->[int rand 2]) * (5 - $personaje->{appearance});
-      $description->{medidas}->{peso} = $description->{medidas}->{altura} - 90; 
-      $description->{medidas}->{peso} += ([-1,1]->[int rand 2]) * (5 - $personaje->{appearance}) * 2;
-      $description->{medidas}->{busto} = 82;
-      $description->{medidas}->{busto} += ($tallas->{$talla} * ($personaje->{sex} eq 'f' ? 2 : 5));
-      $description->{medidas}->{busto} = 82;
-      $description->{medidas}->{busto} += ($tallas->{$talla} * ($personaje->{sex} eq 'f' ? 2 : 5));
-      $description->{pelo}->{forma} = shuffle(qw(lacio ondulado enrulado));
-      return $description;
-    }
+      my $altura = 1.40;
+      $altura += .1 if $personaje->{size} eq 'XS';
+      $altura += .2 if $personaje->{size} eq 'S';
+      $altura += .3 if $personaje->{size} eq 'M';
+      $altura += .4 if $personaje->{size} eq 'L';
+      $altura += .5 if $personaje->{size} eq 'XL';
+      $altura += .1 if $personaje->{stamina} + $personaje->{strengh} >= 8;
+      $altura -= .1 if $personaje->{stamina} + $personaje->{strengh} <= 3;
+      return $altura;
+    },
   });
   push @{$self->atributo_tipos}, map {ModernTimes::Atributo::Tipo->new({
     nombre => $_,
@@ -99,5 +117,15 @@ sub init {
 
   Gaiman->logger->trace('Se agregaron los atributo_tipos: ',join ',', map {$_->nombre} @{$self->atributo_tipos});
 }
+
+  sub es_catetoria {
+    my $self = shift;
+    my $key = shift;
+    foreach my $atributo_tipo (@{$self->atributo_tipos}) {
+      return 1 if $atributo_tipo->categoria eq $key;
+    }
+    return 0;
+  }
+
 
 1;

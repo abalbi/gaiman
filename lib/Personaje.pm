@@ -19,7 +19,7 @@ use Data::Dumper;
     my $tipo = $1;
     my $atributo = $method if grep {$_->nombre eq $method} @{Universo->actual->atributo_tipos};
     if($atributo) {
-      return $self->{_atributos}->{$atributo}->{tipo} if $tipo;
+      return $self->{_atributos}->{$atributo}->{tipo} if $tipo eq 'tipo';
       return $self->atributo($atributo,@_);
     }
     die "No existe el metodo o atributo '$method'";
@@ -31,12 +31,13 @@ use Data::Dumper;
     my $valor = shift;
     if(defined $valor) {
       $self->{_atributos}->{$key} = {
-        tipo => Universo->actual->atributo_tipo($key),
+        tipo => undef,
         valor => undef
       } if !exists $self->{_atributos}->{$key};
-      $self->{_atributos}->{$key}->{valor} = $valor; 
+      $self->{_atributos}->{$key}->{valor} = $valor;
       Gaiman->logger->trace("Se asigno ",$self->name,": ",encode_json({$key => $valor}));
     }
+    $self->{_atributos}->{$key}->{tipo} = Universo->actual->atributo_tipo($key) if !$self->{_atributos}->{$key}->{tipo};
     return 'NONAME' if $key eq 'name' &&  !$self->{_atributos}->{$key}->{valor};
     return $self->{_atributos}->{$key}->{valor};
   }
@@ -61,4 +62,5 @@ use Data::Dumper;
     }
     return encode_json($hash);
   }
+
 1;

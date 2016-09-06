@@ -1,6 +1,7 @@
 package ModernTimes::Atributo::Tipo;
 use strict;
 use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno);
+use Data::Dumper;
 
 sub new {
 	my $self = shift;
@@ -66,6 +67,13 @@ sub validar {
 	return 1 if scalar @{$self->validos} eq 0;
 	return 1 if scalar grep {$_ eq $valor} @{$self->validos};
 	return 0;
+}
+
+sub valor {
+  my $self = shift;
+  my $personaje = shift;
+  my $valor = shift;
+  return $valor;
 }
 
 sub alguno {

@@ -53,9 +53,9 @@ our $actual;
     my $self = shift;
     my $key = shift;
     my $arg = shift;
+    return $self->preparar_categoria($key, $arg) if Universo->es_catetoria($key);
     return $self->preparar_atributo($key) if not defined $arg;
     return $self->preparar_subcategoria($key, $arg) if defined $arg && not ref $arg;
-    return $self->preparar_categoria($key, $arg) if defined $arg && ref $arg eq 'ARRAY';
   }
 
 
@@ -79,37 +79,61 @@ our $actual;
     my $self = shift;
     my $key = shift;
     my $valores = shift;
-    my $temp = [@{$valores}];
-    my $atributos = Universo->actual->atributo_tipo($key);
     my $hash = {};
+    my $atributos = Universo->actual->atributo_tipo($key);
+    $atributos = [$atributos] if ref $atributos ne 'ARRAY';
+    my $temp = [@{$valores}] if $valores;
     $self->preparar_categoria_minimos($hash,$atributos);
     $self->preparar_categoria_reducir_rangos($hash,$valores);
     $self->preparar_categoria_asignacion($hash, $temp);
     foreach my $key (sort keys %$hash) {
       $self->preparar_subcategoria($key, $hash->{$key}->{asignado});
     }
-  } 
+  }
+
+
+  sub preparar_categoria_minimos {
+    my $self = shift;
+    my $hash = shift;
+    my $atributos = shift;
+    foreach my $atributo (@{$atributos}) {
+      my $key = $atributo->nombre;
+      $hash->{$atributo->subcategoria} = {min => 0, subcategoria => $atributo->subcategoria} if !$hash->{$atributo->subcategoria};
+      if ($self->personaje->$key) {
+        $hash->{$atributo->subcategoria}->{min} += $self->personaje->$key; 
+      } else {
+        if ($self->argumentos->{$key}) {
+          $hash->{$atributo->subcategoria}->{min} += $self->argumentos->{$key}; 
+        } else {
+          $hash->{$atributo->subcategoria}->{min} += $atributo->validos->[0] if $atributo->validos;
+        }
+      }
+    }
+    Gaiman->logger->trace('preparar_categoria: MINIMOS: '.encode_json($hash));
+  }
 
   sub preparar_categoria_asignacion {
     my $self = shift;
     my $hash = shift;
     my $temp = shift;
-    my $ordenados = [sort {$b->{min} <=> $a->{min}} values %$hash];
-    my $ordenados = [sort {$b->{subcategoria} cmp $a->{subcategoria}} values %$hash];
-    foreach my $subcategoria (@$ordenados) { 
-      my $asignado = $subcategoria->{rango}->[int rand scalar @{$subcategoria->{rango}}];
-      my $temp2 = [grep {$asignado != $_} @$temp];
-      if(scalar @$temp == scalar @$temp2) {
-        my $error = "Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito";
-        Gaiman->logger->error($error);
-        die $error;
-      }
-      $temp = $temp2;
-      $subcategoria->{asignado} = $asignado;
-      $subcategoria->{rango} = [];
-      foreach my $subcat (sort {$a->{key} cmp $b->{key}} values %$hash) {
-        next if $subcat->{asignado};
-        $subcat->{rango} = [grep {$_ ne $subcategoria->{asignado}} @{$subcat->{rango}}];
+    if($temp) {
+      my $ordenados = [sort {$b->{min} <=> $a->{min}} values %$hash];
+      my $ordenados = [sort {$b->{subcategoria} cmp $a->{subcategoria}} values %$hash];
+      foreach my $subcategoria (@$ordenados) { 
+        my $asignado = $subcategoria->{rango}->[int rand scalar @{$subcategoria->{rango}}];
+        my $temp2 = [grep {$asignado != $_} @$temp];
+        if(scalar @$temp == scalar @$temp2) {
+          my $error = "Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito";
+          Gaiman->logger->error($error);
+          die $error;
+        }
+        $temp = $temp2;
+        $subcategoria->{asignado} = $asignado;
+        $subcategoria->{rango} = [];
+        foreach my $subcat (sort {$a->{key} cmp $b->{key}} values %$hash) {
+          next if $subcat->{asignado};
+          $subcat->{rango} = [grep {$_ ne $subcategoria->{asignado}} @{$subcat->{rango}}];
+        }
       }
     }
     Gaiman->logger->trace('preparar_categoria: ASIGNACION: '.encode_json($hash));
@@ -120,6 +144,7 @@ our $actual;
     my $hash = shift;
     my $valores = shift;
     my $rangos_con_un_valor = 0;
+    return if !$valores;
     foreach my $key2 (sort keys %$hash) {
       my $subcategoria = $hash->{$key2};
       $subcategoria->{rango} = [grep {$_ >= $subcategoria->{min}} @$valores];
@@ -138,37 +163,13 @@ our $actual;
     }
   }
 
-  sub preparar_categoria_minimos {
-    my $self = shift;
-    my $hash = shift;
-    my $atributos = shift;
-    foreach my $atributo (@{$atributos}) {
-      my $key = $atributo->nombre;
-      $hash->{$atributo->subcategoria} = {min => 0, subcategoria => $atributo->subcategoria} if !$hash->{$atributo->subcategoria};
-      if ($self->personaje->$key) {
-        $hash->{$atributo->subcategoria}->{min} += $self->personaje->$key; 
-      } else {
-        if ($self->argumentos->{$key}) {
-          $hash->{$atributo->subcategoria}->{min} += $self->argumentos->{$key}; 
-        } else {
-          $hash->{$atributo->subcategoria}->{min} += $atributo->validos->[0];
-        }
-      }
-    }
-    Gaiman->logger->trace('preparar_categoria: MINIMOS: '.encode_json($hash));
-  }
-
-
   sub preparar_subcategoria {
+    $Data::Dumper::Maxdepth = 3;
     my $self = shift;
     my $key = shift;
     my $valor = shift;
-    if(!$valor) {
-      my $error = "No se puede preparar una subcategoria si no se pasa un valor";
-      Gaiman->logger->error($error);
-      die $error;
-    }
     my $atributos = Universo->actual->atributo_tipo($key);
+    $atributos = [$atributos] if ref $atributos ne 'ARRAY';
     my @filtrados;
     foreach my $atributo (@{$atributos}) {
       my $key = $atributo->nombre;
@@ -189,22 +190,28 @@ our $actual;
       Gaiman->logger->error($error);
       die $error;
     }
-    while (1) {
-      last if !$puntos;
-      my $atributo = $atributos->[int rand scalar @$atributos];
-      my $key = $atributo->nombre;
-      if (scalar grep {$_ eq $key} @filtrados) {
-        Gaiman->logger->trace("Se filtra el atributo $key por tener valor previo");
-        next;
+    if($puntos) {
+      while (1) {
+        last if !$puntos;
+        my $atributo = $atributos->[int rand scalar @$atributos];
+        my $key = $atributo->nombre;
+        if (scalar grep {$_ eq $key} @filtrados) {
+          Gaiman->logger->trace("Se filtra el atributo $key por tener valor previo");
+          next;
+        }
+        my $valor = $self->estructura->{$key};
+        $valor += 1;
+        if (!$atributo->validar($valor)) {
+          Gaiman->logger->trace("No se valido el valor $valor para $key");
+          next;
+        }
+        $self->estructura->{$key} = $valor;
+        $puntos--;
       }
-      my $valor = $self->estructura->{$key};
-      $valor += 1;
-      if (!$atributo->validar($valor)) {
-        Gaiman->logger->trace("No se valido el valor $valor para $key");
-        next;
+    } else {
+      foreach my $atributo (@{$atributos}) {
+        $self->preparar_atributo($atributo->nombre);        
       }
-      $self->estructura->{$key} = $valor;
-      $puntos--;
     }
   }
 

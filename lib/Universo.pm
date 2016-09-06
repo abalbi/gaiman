@@ -34,4 +34,9 @@ our $actual;
   	my $self = shift;
   	return $self->{_atributo_tipos};
   }
+
+  sub es_catetoria {
+    my $self = shift;
+    return $self->actual->es_catetoria(@_);
+  }
 1;
