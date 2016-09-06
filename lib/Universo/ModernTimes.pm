@@ -34,20 +34,26 @@ sub init {
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'heir_color',
     categoria => 'description',
-    subcategoria => 'heir',
-    validos => [qw(moroch[a|o] rubi[a|o])],
+    subcategoria => 'face',
+    validos => [qw(moroch[a|o] rubi[a|o] castañ[a|o] peliroj[a|o])],
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'heir_long',
     categoria => 'description',
-    subcategoria => 'heir',
+    subcategoria => 'face',
     validos => [qw(largo corto)],
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'heir_form',
     categoria => 'description',
-    subcategoria => 'heir',
+    subcategoria => 'face',
     validos => [qw(lacio ondulado enrulado)],
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'eyes_color',
+    categoria => 'description',
+    subcategoria => 'face',
+    validos => [qw(azules verdes marrones negros miel)],
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'size',
@@ -62,15 +68,92 @@ sub init {
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $altura = 1.40;
-      $altura += .1 if $personaje->{size} eq 'XS';
-      $altura += .2 if $personaje->{size} eq 'S';
-      $altura += .3 if $personaje->{size} eq 'M';
-      $altura += .4 if $personaje->{size} eq 'L';
-      $altura += .5 if $personaje->{size} eq 'XL';
-      $altura += .1 if $personaje->{stamina} + $personaje->{strengh} >= 8;
-      $altura -= .1 if $personaje->{stamina} + $personaje->{strengh} <= 3;
-      return $altura;
+      my $medida = $personaje->{sex} eq 'f' ? 1.30 : 1.40;
+      $medida += .1 if $personaje->{size} eq 'XS';
+      $medida += .2 if $personaje->{size} eq 'S';
+      $medida += .3 if $personaje->{size} eq 'M';
+      $medida += .4 if $personaje->{size} eq 'L';
+      $medida += .5 if $personaje->{size} eq 'XL';
+      $medida += .1 if $personaje->{stamina} + $personaje->{strengh} >= 8;
+      $medida -= .1 if $personaje->{stamina} + $personaje->{strengh} <= 3;
+      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * .05);
+      return $medida;
+    },
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'weight',
+    categoria => 'description',
+    subcategoria => 'body',
+    alguno => sub {
+      my $atributo_tipo = shift;
+      my $personaje = shift;
+      my $medida = $personaje->{sex} eq 'f' ? 20 : 30;
+      $medida += 10 if $personaje->{size} eq 'XS';
+      $medida += 20 if $personaje->{size} eq 'S';
+      $medida += 30 if $personaje->{size} eq 'M';
+      $medida += 40 if $personaje->{size} eq 'L';
+      $medida += 50 if $personaje->{size} eq 'XL';
+      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
+      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
+      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 5);
+      return $medida;
+    },
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'bust',
+    categoria => 'description',
+    subcategoria => 'body',
+    alguno => sub {
+      my $atributo_tipo = shift;
+      my $personaje = shift;
+      my $medida = $personaje->{sex} eq 'f' ? 80 : 90;
+      $medida += 4 if $personaje->{size} eq 'XS';
+      $medida += 8 if $personaje->{size} eq 'S';
+      $medida += 10 if $personaje->{size} eq 'M';
+      $medida += 15 if $personaje->{size} eq 'L';
+      $medida += 20 if $personaje->{size} eq 'XL';
+      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
+      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
+      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 2);
+      return $medida;
+    },
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'waist',
+    categoria => 'description',
+    subcategoria => 'body',
+    alguno => sub {
+      my $atributo_tipo = shift;
+      my $personaje = shift;
+      my $medida = $personaje->{sex} eq 'f' ? 50 : 65;
+      $medida += 4 if $personaje->{size} eq 'XS';
+      $medida += 8 if $personaje->{size} eq 'S';
+      $medida += 10 if $personaje->{size} eq 'M';
+      $medida += 15 if $personaje->{size} eq 'L';
+      $medida += 20 if $personaje->{size} eq 'XL';
+      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
+      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
+      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 2);
+      return $medida;
+    },
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'hip',
+    categoria => 'description',
+    subcategoria => 'body',
+    alguno => sub {
+      my $atributo_tipo = shift;
+      my $personaje = shift;
+      my $medida = $personaje->{sex} eq 'f' ? 80 : 90;
+      $medida += 4 if $personaje->{size} eq 'XS';
+      $medida += 8 if $personaje->{size} eq 'S';
+      $medida += 10 if $personaje->{size} eq 'M';
+      $medida += 15 if $personaje->{size} eq 'L';
+      $medida += 20 if $personaje->{size} eq 'XL';
+      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
+      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
+      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 2);
+      return $medida;
     },
   });
   push @{$self->atributo_tipos}, map {ModernTimes::Atributo::Tipo->new({

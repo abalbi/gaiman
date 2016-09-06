@@ -21,8 +21,13 @@ sub description_texto {
 			'de pelo', $self->heir_long,
 			'y', $self->heir_form,
 		),
+		Gaiman->oracion($self, 
+			'Sus ojos son', $self->eyes_color,
+		),
 		Gaiman->oracion($self,
-			'Mide', $self->height
+			'Mide', $self->height,
+			', pesa', $self->weight, 'kg',
+			' y sus medidas son', $self->bust.'-'.$self->waist.'-'.$self->hip,
 		)
 	);
 	return $str;

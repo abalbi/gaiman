@@ -55,6 +55,8 @@ our $instancia;
     $self = $self eq __PACKAGE__ ? $self->instancia : $self;
     my $sujeto = shift;
     my $resultado = join(' ', map {Gaiman->t($sujeto, $_)} @_);
+    $resultado =~ s/ ,/,/g;
+    $resultado =~ s/  / /g;
     $resultado .= '.';
     return $resultado;
   }

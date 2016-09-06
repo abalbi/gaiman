@@ -17,7 +17,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	$builder->personaje($personaje);
 	$builder->build({sex => 'f'});
 	#Entonces el personaje tendra description
-	print Dumper $personaje->description_texto;
+	ok $personaje->description_texto, 'tiene description';
 }
 
 {
@@ -26,7 +26,9 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	$personaje->heir_color('rubi[a|o]');
 
 	$builder->personaje($personaje);
-	$builder->build({sex => 'f', stamina => 1, strengh => 1});
+	$builder->build({sex => 'f', appearance => 5, size => 'M', heir_color => 'castañ[a|o]', heir_long => 'largo'});
 	#Entonces el personaje tendra description
-	print Dumper $personaje->description_texto;
+	like $personaje->description_texto, qr/castaña/;
+	like $personaje->description_texto, qr/sus medidas son 90-60-90/;
+	like $personaje->description_texto, qr/Mide 1.6, pesa 50 kg/;
 }
