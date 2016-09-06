@@ -79,83 +79,106 @@ our $actual;
     my $self = shift;
     my $key = shift;
     my $valores = shift;
-    my $hash = {};
+    $self->estructura->{hash} = {};
     my $atributos = Universo->actual->atributo_tipo($key);
     $atributos = [$atributos] if ref $atributos ne 'ARRAY';
     my $temp = [@{$valores}] if $valores;
-    $self->preparar_categoria_minimos($hash,$atributos);
-    $self->preparar_categoria_reducir_rangos($hash,$valores);
-    $self->preparar_categoria_asignacion($hash, $temp);
-    foreach my $key (sort keys %$hash) {
-      $self->preparar_subcategoria($key, $hash->{$key}->{asignado});
+    $self->preparar_categoria_min_max($atributos);
+    $self->preparar_categoria_reducir_rangos($valores);
+    $self->preparar_categoria_asignacion( $temp);
+    foreach my $key (sort keys %{$self->estructura->{hash}}) {
+      $self->preparar_subcategoria($key, $self->estructura->{hash}->{$key}->{asignado});
     }
   }
 
 
-  sub preparar_categoria_minimos {
+  sub preparar_categoria_min_max {
     my $self = shift;
-    my $hash = shift;
     my $atributos = shift;
     foreach my $atributo (@{$atributos}) {
       my $key = $atributo->nombre;
-      $hash->{$atributo->subcategoria} = {min => 0, subcategoria => $atributo->subcategoria} if !$hash->{$atributo->subcategoria};
+      $self->estructura->{hash}->{$atributo->subcategoria} = {
+        min => 0,
+        max => 0,
+        subcategoria => $atributo->subcategoria
+      } if !$self->estructura->{hash}->{$atributo->subcategoria};
       if ($self->personaje->$key) {
-        $hash->{$atributo->subcategoria}->{min} += $self->personaje->$key; 
+        $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $self->personaje->$key;
+        $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $self->personaje->$key;
       } else {
         if ($self->argumentos->{$key}) {
-          $hash->{$atributo->subcategoria}->{min} += $self->argumentos->{$key}; 
+          $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $self->argumentos->{$key};
+          $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $self->argumentos->{$key}; 
+
         } else {
-          $hash->{$atributo->subcategoria}->{min} += $atributo->validos->[0] if $atributo->validos;
+          if($atributo->validos) {
+            $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $atributo->validos->[0];
+            $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $atributo->validos->[$#{$atributo->validos}]; 
+          }
         }
       }
     }
-    Gaiman->logger->trace('preparar_categoria: MINIMOS: '.encode_json($hash));
+    Gaiman->logger->trace('preparar_categoria: MINIMOS: '.encode_json($self->estructura->{hash}));
   }
 
   sub preparar_categoria_asignacion {
     my $self = shift;
-    my $hash = shift;
     my $temp = shift;
     if($temp) {
-      my $ordenados = [sort {$b->{min} <=> $a->{min}} values %$hash];
-      my $ordenados = [sort {$b->{subcategoria} cmp $a->{subcategoria}} values %$hash];
+      my $ordenados = [sort {$b->{min} <=> $a->{min}} values %{$self->estructura->{hash}}];
+      my $ordenados = [sort {$b->{subcategoria} cmp $a->{subcategoria}} values %{$self->estructura->{hash}}];
       foreach my $subcategoria (@$ordenados) { 
         my $asignado = $subcategoria->{rango}->[int rand scalar @{$subcategoria->{rango}}];
-        my $temp2 = [grep {$asignado != $_} @$temp];
-        if(scalar @$temp == scalar @$temp2) {
-          my $error = "Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito";
-          Gaiman->logger->error($error);
-          die $error;
-        }
-        $temp = $temp2;
         $subcategoria->{asignado} = $asignado;
         $subcategoria->{rango} = [];
-        foreach my $subcat (sort {$a->{key} cmp $b->{key}} values %$hash) {
+        foreach my $subcat (sort {$a->{key} cmp $b->{key}} values %{$self->estructura->{hash}}) {
           next if $subcat->{asignado};
           $subcat->{rango} = [grep {$_ ne $subcategoria->{asignado}} @{$subcat->{rango}}];
         }
       }
     }
-    Gaiman->logger->trace('preparar_categoria: ASIGNACION: '.encode_json($hash));
+    Gaiman->logger->trace('preparar_categoria: ASIGNACION: '.encode_json($self->estructura->{hash}));
   }
 
   sub preparar_categoria_reducir_rangos {
     my $self = shift;
-    my $hash = shift;
     my $valores = shift;
     my $rangos_con_un_valor = 0;
     return if !$valores;
-    foreach my $key2 (sort keys %$hash) {
-      my $subcategoria = $hash->{$key2};
-      $subcategoria->{rango} = [grep {$_ >= $subcategoria->{min}} @$valores];
-      $rangos_con_un_valor++ if scalar @{$subcategoria->{rango}} == 1;
-      if(!scalar @{$subcategoria->{rango}}) {
-        my $error = "Los puntos preasignados($subcategoria->{min}) estan fuera de rango (".join(',',@{$valores}).")";
+    foreach my $key (sort keys %{$self->estructura->{hash}}) {
+      my $subcat = $self->estructura->{hash}->{$key};
+      my $rango = [@$valores];
+      $rango = [grep {$_ < $subcat->{max}} @$rango];
+      $rango = [grep {$_ > $subcat->{min} } @$rango];
+      $subcat->{rango} = $rango;
+    }
+    foreach my $key (sort keys %{$self->estructura->{hash}}) {
+      my $subcat = $self->estructura->{hash}->{$key};
+      my $rango = $subcat->{rango};
+      if($valores->[0] < $subcat->{min}) {
+        my $error = "La subcategoria $key tiene un minimo de $subcat->{min} y los valores pasados son @$valores ".encode_json($self->estructura->{hash});
         Gaiman->logger->error($error);
         die $error;
       }
+      if(scalar @$rango == 0) {
+        my $error = "Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor: ".encode_json($self->estructura->{hash});
+        Gaiman->logger->error($error);
+        die $error;
+      }
+      if(scalar @$rango == 1) {
+        my $unico = $rango->[0];
+        foreach my $key2 (sort keys %{$self->estructura->{hash}}) {
+          next if $key eq $key2;
+          my $subcat2 = $self->estructura->{hash}->{$key2};
+          my $rango2 = $subcat2->{rango};
+          $rango2 = [grep {$_ != $unico} @$rango2];
+          $subcat2->{rango} = $rango2;
+        }
+      }
+      $subcat->{rango} = $rango;
     }
-    Gaiman->logger->trace('preparar_categoria: RANGOS: '.encode_json($hash));
+
+    Gaiman->logger->trace('preparar_categoria: RANGOS: '.encode_json($self->estructura->{hash}));
     if($rangos_con_un_valor > 1) {
       my $error = "Se encontraron 2 o mas subcategorias que solo pueden usar un valor. Esto es imposible";
       Gaiman->logger->error($error);
@@ -164,7 +187,6 @@ our $actual;
   }
 
   sub preparar_subcategoria {
-    $Data::Dumper::Maxdepth = 3;
     my $self = shift;
     my $key = shift;
     my $valor = shift;
@@ -190,8 +212,16 @@ our $actual;
       Gaiman->logger->error($error);
       die $error;
     }
+    my $c = 20;
     if($puntos) {
       while (1) {
+        $c--;
+        if(!$c) {
+          my $error = "Se corta ciclo por recucion infinita";
+          Gaiman->logger->error($error);
+          print STDERR Dumper $self->estructura;
+          die $error;
+        }
         last if !$puntos;
         my $atributo = $atributos->[int rand scalar @$atributos];
         my $key = $atributo->nombre;
@@ -243,6 +273,7 @@ our $actual;
   sub asignar {
     my $self = shift;
     foreach my $key (sort keys %{$self->estructura}) {
+      next if $key eq 'hash';
       my $valor = $self->estructura->{$key};
       $self->personaje->$key($valor) if $valor ne $self->personaje->$key;   
     }

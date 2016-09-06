@@ -59,7 +59,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	dies_ok {
 		$builder->build;
 	} 'se disparar un error por que excede el maximo asignable';
-	like $@, qr/Los puntos preasignados\(11\) estan fuera de rango \(10,8,6\)/, 'con un mensaje correspondiente';
+	like $@, qr/La subcategoria social tiene un minimo de 11 y los valores pasados son 10 8 6/, 'con un mensaje correspondiente';
 }
 
 {
@@ -75,7 +75,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	dies_ok {
 		$builder->build;
 	} 'se disparar un error por que dos categorias tiene una sola opcion posible';
-	like $@, qr/Se encontraron 2 o mas subcategorias que solo pueden usar un valor. Esto es imposible/, 'con un mensaje correspondiente';
+	like $@, qr/Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor/, 'con un mensaje correspondiente';
 }
 
 {
@@ -93,5 +93,5 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	dies_ok {
 		$builder->build;
 	} 'Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito';
-	like $@, qr/Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito/, 'con un mensaje correspondiente';
+	like $@, qr/Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor/, 'con un mensaje correspondiente';
 }
