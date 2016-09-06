@@ -107,9 +107,9 @@ our $actual;
         $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $self->personaje->$key;
       } else {
         if ($self->argumentos->{$key}) {
+          $self->argumentos->{$key} = $self->argumentos->{$key}->[int rand scalar @{$self->argumentos->{$key}}] if ref $self->argumentos->{$key} eq 'ARRAY';
           $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $self->argumentos->{$key};
           $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $self->argumentos->{$key}; 
-
         } else {
           if($atributo->validos) {
             $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $atributo->validos->[0];
@@ -201,6 +201,7 @@ our $actual;
         push @filtrados, $key;
       }
       if ($self->argumentos->{$key}) {
+        $self->argumentos->{$key} = $self->argumentos->{$key}->[int rand scalar @{$self->argumentos->{$key}}] if ref $self->argumentos->{$key} eq 'ARRAY';
         $self->estructura->{$key} = $self->argumentos->{$key}; 
         push @filtrados, $key;
       }

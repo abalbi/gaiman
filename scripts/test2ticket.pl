@@ -12,7 +12,7 @@ foreach my $line (@$lines) {
 	if($line !~ /\#/) {
 		$line = "`$line`";
 	} else {
-	  $line =~ s/\#(Entonces|Dado|Cuando)/\#\*\*$1\*\*/;
+	  $line =~ s/\#(Entonces|Dado|Cuando|Y)/\#\*\*$1\*\*/;
 	}
 	print $line."\n";
 }
