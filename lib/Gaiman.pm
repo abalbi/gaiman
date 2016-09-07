@@ -3,6 +3,7 @@ use strict;
 use fields qw();
 use Log::Log4perl;
 use Log::Log4perl::Level;
+use JSON;
 
 use Personaje;
 use Entorno;
@@ -68,4 +69,36 @@ our $instancia;
     return $resultado;
   }
 
+  sub runner {
+    my $class = shift;
+    my $arg = shift if ref $_[0] eq 'ARRAY';
+    my $arg = {@_} if !$arg;
+    my $comando = $arg->{comando};
+    delete $arg->{comando};
+    my $random = $arg->{random};
+    delete $arg->{random};
+    my $json = $arg->{json};
+    delete $arg->{json};
+    my $log = $arg->{log};
+    delete $arg->{log};
+    my $str = '';
+    srand()  if $random;
+    srand(3) if !$random;
+    my $pre_log = $Gaiman::logger->level;
+    $Gaiman::logger->level( $log );
+    Gaiman->logger->info("Runner argumentos:".encode_json($arg));
+    my $self = Gaiman->instancia;
+    if($comando eq 'personaje' || $comando eq 'per') {
+      ModernTimes->new;
+      my $builder = ModernTimes::Builder::Personaje->new;
+      my $personaje = ModernTimes::Personaje->new;
+      $builder->personaje($personaje);
+      $builder->build($arg);
+      Entorno->actual->agregar($personaje);
+      $str .= $personaje->json."\n" if $json;
+      $str .= $personaje->description_texto
+    }
+    $Gaiman::logger->level( $pre_log );
+    return $str;
+  }
 1;
