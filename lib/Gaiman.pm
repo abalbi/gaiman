@@ -11,14 +11,23 @@ use Universo;
 use Universo::ModernTimes;
 use Data::Dumper;
 
-srand(3);
 Log::Log4perl->init("log.conf");
 our $logger = Log::Log4perl->get_logger("runner");
-
+$Gaiman::logger->level('OFF');
 our $instancia;
+
+ModernTimes->new;
   sub new {
     my $self = shift;
-    my $args = shift;
+    my $arg = shift;
+    $arg = {} if not defined $arg;
+    $arg->{random}  = $arg->{random} ? $arg->{random} : 0;
+    $arg->{srand}  = $arg->{srand} ? $arg->{srand} : 8094;
+    $arg->{log}    = $arg->{log} ? $arg->{log} : q(TRACE);
+    $Gaiman::logger->level( $arg->{log} );
+    $arg->{srand} = int rand 10000 if $arg->{random};
+    srand($arg->{srand});
+    $logger->info("Random: ".$arg->{srand});
     $self = fields::new($self);
     $self->logger->info("Se instancio ",ref $self);
     return $self;
@@ -26,7 +35,8 @@ our $instancia;
 
   sub instancia {
     my $class = shift;
-    $instancia = Gaiman->new if !$instancia;
+    my $arg = shift;
+    $instancia = Gaiman->new($arg) if !$instancia;
     return $instancia;
   }
 
@@ -69,10 +79,18 @@ our $instancia;
     return $resultado;
   }
 
+  sub atributos {
+    my $self = shift;
+    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
+    return Universo->actual->atributo_tipo_nombres;
+  }
+
+
   sub runner {
     my $class = shift;
     my $arg = shift if ref $_[0] eq 'ARRAY';
     my $arg = {@_} if !$arg;
+    my $srand = 3;
     my $comando = $arg->{comando};
     delete $arg->{comando};
     my $random = $arg->{random};
@@ -81,13 +99,13 @@ our $instancia;
     delete $arg->{json};
     my $log = $arg->{log};
     delete $arg->{log};
+    $srand = $arg->{srand};
+    delete $arg->{srand};
     my $str = '';
-    srand()  if $random;
-    srand(3) if !$random;
-    my $pre_log = $Gaiman::logger->level;
-    $Gaiman::logger->level( $log );
     Gaiman->logger->info("Runner argumentos:".encode_json($arg));
     my $self = Gaiman->instancia;
+    my $texto = 1;
+    $texto = 0 if $json;
     if($comando eq 'personaje' || $comando eq 'per') {
       ModernTimes->new;
       my $builder = ModernTimes::Builder::Personaje->new;
@@ -96,9 +114,49 @@ our $instancia;
       $builder->build($arg);
       Entorno->actual->agregar($personaje);
       $str .= $personaje->json."\n" if $json;
-      $str .= $personaje->description_texto
+      $str .= $personaje->description_texto if $texto;
     }
-    $Gaiman::logger->level( $pre_log );
     return $str;
+  }
+
+  sub error {
+    my $self = shift;
+    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
+    Gaiman->logger->error(@_);
+    die @_;    
+  }
+
+  sub install {
+    my $self = shift;
+    Gaiman::logger->info('Dando permisos a gaiman');
+    my $gaiman_path = './scripts/gaiman';
+    if(!-e $gaiman_path) {
+      Gaiman->error('No se encontro '.$gaiman_path);
+    }
+    Gaiman::logger->info('Chequeando permisos del gaiman');
+    if(!-x $gaiman_path) {
+      Gaiman::logger->trace('Dando permisos al gaiman');
+      chmod 0775, $gaiman_path;
+    }
+    Gaiman::logger->info('Generando autocomplete en .bashrc');
+    my $home_path = $ENV{'HOME'};
+    my $bashrc_path = join '/', ($home_path, '.bashrc');
+    my $comment = '#Gaiman autocomplete settings';
+    my $cmd1 = 'function _getopt_complete() { COMPREPLY=($( COMP_CWORD=$COMP_CWORD perl `which ${COMP_WORDS[0]}` ${COMP_WORDS[@]:0} ));}';
+    my $cmd2 = 'complete -F _getopt_complete gaiman';
+    if(-e $bashrc_path) {
+      open BASHRC, $bashrc_path;
+      my @file = <BASHRC>;
+      close BASHRC;
+      if(! scalar grep {$_ =~ /complete \-F \_getopt\_complete gaiman/} @file) {
+        open BASHRC, '>>', $bashrc_path;
+        print BASHRC "\n";
+        print BASHRC $comment."\n";
+        print BASHRC $cmd1."\n";
+        print BASHRC $cmd2."\n";
+        print BASHRC "\n";
+        close BASHRC;
+      }
+    }
   }
 1;

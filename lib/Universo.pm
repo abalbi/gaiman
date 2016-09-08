@@ -35,6 +35,11 @@ our $actual;
   	return $self->{_atributo_tipos};
   }
 
+  sub atributo_tipo_nombres {
+    my $self = shift;
+    return [map {$_->nombre} @{$self->atributo_tipos}];    
+  }
+
   sub es_catetoria {
     my $self = shift;
     return $self->actual->es_catetoria(@_);
