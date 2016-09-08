@@ -16,7 +16,6 @@ our $logger = Log::Log4perl->get_logger("runner");
 $Gaiman::logger->level('OFF');
 our $instancia;
 
-ModernTimes->new;
   sub new {
     my $self = shift;
     my $arg = shift;
@@ -88,11 +87,12 @@ ModernTimes->new;
 
   sub runner {
     my $class = shift;
-    my $arg = shift if ref $_[0] eq 'ARRAY';
-    my $arg = {@_} if !$arg;
+    my $arg = shift;
+    $arg = {} if !$arg;
+    Gaiman->logger->info("Runner argumentos:".encode_json($arg));
     my $srand = 3;
-    my $comando = $arg->{comando};
-    delete $arg->{comando};
+    my $build = $arg->{build};
+    delete $arg->{build};
     my $random = $arg->{random};
     delete $arg->{random};
     my $json = $arg->{json};
@@ -102,11 +102,10 @@ ModernTimes->new;
     $srand = $arg->{srand};
     delete $arg->{srand};
     my $str = '';
-    Gaiman->logger->info("Runner argumentos:".encode_json($arg));
     my $self = Gaiman->instancia;
     my $texto = 1;
     $texto = 0 if $json;
-    if($comando eq 'personaje' || $comando eq 'per') {
+    if($build eq 'personaje' || $build eq 'per') {
       ModernTimes->new;
       my $builder = ModernTimes::Builder::Personaje->new;
       my $personaje = ModernTimes::Personaje->new;

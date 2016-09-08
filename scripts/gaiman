@@ -11,11 +11,11 @@ use Getopt::Complete (
 );
 
 my %arg;
-$arg{comando} = $ARGS{build};
+$arg{build} = $ARGS{build};
 $arg{random}  = $ARGS{random};
 $arg{srand}  = $ARGS{srand};
 $arg{json}    = $ARGS{json};
 $arg{log}    = $ARGS{log} ? $ARGS{log} : q(OFF);
 
-print Gaiman->instancia(\%arg)->runner(%arg);
+print Gaiman->instancia({%arg})->runner({%arg});
 print "\n";
