@@ -4,6 +4,7 @@ use fields qw();
 use Log::Log4perl;
 use Log::Log4perl::Level;
 use JSON;
+use Carp qw(confess cluck);
 
 use Personaje;
 use Entorno;
@@ -122,8 +123,16 @@ our $instancia;
     my $self = shift;
     $self = $self eq __PACKAGE__ ? $self->instancia : $self;
     Gaiman->logger->error(@_);
-    die @_;    
+    confess @_;    
   }
+
+  sub warn {
+    my $self = shift;
+    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
+    Gaiman->logger->warn(@_);
+    cluck @_;    
+  }
+
 
   sub install {
     my $self = shift;

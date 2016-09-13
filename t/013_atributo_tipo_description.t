@@ -23,7 +23,6 @@ my $builder = ModernTimes::Builder::Personaje->new;
 {
 	#Cuando le hago build en un nuevo personaje
 	my $personaje = ModernTimes::Personaje->new;
-	$personaje->heir_color('rubi[a|o]');
 
 	$builder->personaje($personaje);
 	$builder->build({sex => 'f', appearance => 5, size => 'M', heir_color => 'castañ[a|o]', heir_long => 'largo'});

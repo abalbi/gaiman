@@ -155,16 +155,8 @@ our $actual;
     foreach my $key (sort keys %{$self->estructura->{hash}}) {
       my $subcat = $self->estructura->{hash}->{$key};
       my $rango = $subcat->{rango};
-      if($valores->[0] < $subcat->{min}) {
-        my $error = "La subcategoria $key tiene un minimo de $subcat->{min} y los valores pasados son @$valores ".encode_json($self->estructura->{hash});
-        Gaiman->logger->error($error);
-        die $error;
-      }
-      if(scalar @$rango == 0) {
-        my $error = "Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor: ".encode_json($self->estructura->{hash});
-        Gaiman->logger->error($error);
-        die $error;
-      }
+      Gaiman->error("La subcategoria $key tiene un minimo de $subcat->{min} y los valores pasados son @$valores ".encode_json($self->estructura->{hash})) if$valores->[0] < $subcat->{min};
+      Gaiman->error("Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor: ".encode_json($self->estructura->{hash})) if scalar @$rango == 0;
       if(scalar @$rango == 1) {
         my $unico = $rango->[0];
         foreach my $key2 (sort keys %{$self->estructura->{hash}}) {
@@ -179,11 +171,22 @@ our $actual;
     }
 
     Gaiman->logger->trace('preparar_categoria: RANGOS: '.encode_json($self->estructura->{hash}));
-    if($rangos_con_un_valor > 1) {
-      my $error = "Se encontraron 2 o mas subcategorias que solo pueden usar un valor. Esto es imposible";
-      Gaiman->logger->error($error);
-      die $error;
+    Gaiman->error("Se encontraron 2 o mas subcategorias que solo pueden usar un valor. Esto es imposible") if $rangos_con_un_valor > 1;
+  }
+
+  sub preparar_subcategoria_filtro {
+    my $self = shift;
+    my $atributos = shift;
+    my $filtrados = [];
+    foreach my $atributo (@{$atributos}) {
+      my $key = $atributo->nombre;
+      $self->estructura->{$key} = $atributo->validos->[0] if $atributo->validos;
+      if ($self->personaje->$key || $self->argumentos->{$key}) {
+        $self->preparar_atributo($key); 
+        push @$filtrados, $key;
+      }
     }
+    return $filtrados;
   }
 
   sub preparar_subcategoria {
@@ -192,56 +195,32 @@ our $actual;
     my $valor = shift;
     my $atributos = Universo->actual->atributo_tipo($key);
     $atributos = [$atributos] if ref $atributos ne 'ARRAY';
-    my @filtrados;
-    foreach my $atributo (@{$atributos}) {
-      my $key = $atributo->nombre;
-      $self->estructura->{$key} = $atributo->validos->[0] if $atributo->validos;
-      if ($self->personaje->$key) {
-        $self->estructura->{$key} = $self->personaje->$key; 
-        push @filtrados, $key;
-      }
-      if ($self->argumentos->{$key}) {
-        $self->argumentos->{$key} = $self->argumentos->{$key}->[int rand scalar @{$self->argumentos->{$key}}] if ref $self->argumentos->{$key} eq 'ARRAY';
-        $self->estructura->{$key} = $self->argumentos->{$key}; 
-        push @filtrados, $key;
-      }
-    }
+    my $filtrados = $self->preparar_subcategoria_filtro($atributos);
     my $sum = $self->sum($atributos);
     my $puntos = $valor - $sum;
-    if($puntos < 0) {
-      my $error = "El numero de puntos asignados ($sum) supera a los asignar ($valor)";
-      Gaiman->logger->error($error);
-      die $error;
-    }
+    Gaiman->error("El numero de puntos asignados ($sum) supera a los asignar ($valor)") if $puntos < 0;
     my $c = 20;
     if($puntos) {
       while (1) {
         $c--;
-        if(!$c) {
-          my $error = "Se corta ciclo por recucion infinita";
-          Gaiman->logger->error($error);
-          print STDERR Dumper $self->estructura;
-          die $error;
-        }
+        Gaiman->error("Se corta ciclo por recucion infinita") if !$c;
         last if !$puntos;
         my $atributo = $atributos->[int rand scalar @$atributos];
         my $key = $atributo->nombre;
-        if (scalar grep {$_ eq $key} @filtrados) {
+        if (scalar grep {$_ eq $key} @$filtrados) {
           Gaiman->logger->trace("Se filtra el atributo $key por tener valor previo");
           next;
         }
         my $valor = $self->estructura->{$key};
         $valor += 1;
-        if (!$atributo->validar($valor)) {
-          Gaiman->logger->trace("No se valido el valor $valor para $key");
-          next;
+        if($atributo->validar($valor)) {
+          $self->preparar_atributo($atributo->nombre, $valor);
+          $puntos--;
         }
-        $self->estructura->{$key} = $valor;
-        $puntos--;
       }
     } else {
       foreach my $atributo (@{$atributos}) {
-        $self->preparar_atributo($atributo->nombre);        
+        $self->preparar_atributo($atributo->nombre);   
       }
     }
   }
@@ -249,26 +228,39 @@ our $actual;
   sub preparar_atributo {
     my $self = shift;
   	my $key = shift;
+    my $valor_parametro = shift;
+    my $valor = $valor_parametro;
+    my $valor_random;
     my $atributo = Universo->actual->atributo_tipo($key);
-    my $valor;
+    if (exists $self->argumentos->{$key}){
+      if(ref $self->argumentos->{$key} eq 'ARRAY') {
+        $valor = $self->argumentos->{$key}->[int rand scalar @{$self->argumentos->{$key}}];
+      } else {
+        $valor = $self->argumentos->{$key};
+      }
+    }
     if ($self->personaje->$key) {
       if ($self->personaje->$key ne 'NONAME') {
         $valor = $self->personaje->$key;
       }
     }
-    if (exists $self->argumentos->{$key}){
-      $valor = $self->argumentos->{$key};
-      if(!$atributo->validar($valor)) {
-        my $warn = "No es valido el valor $valor para el atributo $key";
-        Gaiman->logger->warn($warn);
-        warn $warn;
-        $valor = undef;
-      }
+    if (not defined $valor) {
+      $valor_random = $atributo->alguno($self->estructura);
+      $valor = $valor_random
     }
-    if (!$valor) {
-      $valor = $atributo->alguno($self->estructura);
+    if(!$atributo->validar($valor)) {
+      Gaiman->warn("No es valido el valor $valor para el atributo $key");
+      $valor = undef;
     }
-  	$self->estructura->{$key} = $valor if defined $valor;
+    Gaiman->logger->trace("preparar_atributo $key: ".encode_json({
+      parametro => $valor_parametro,
+      argumentos => $self->argumentos->{$key},
+      personaje => $self->personaje->$key,
+      random => $valor_random,
+      final => $valor,
+    }));
+    $self->estructura->{$key} = $valor if defined $valor;
+    return;
   }
 
   sub asignar {

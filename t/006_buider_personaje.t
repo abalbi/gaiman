@@ -17,7 +17,6 @@ $builder->personaje($personaje);
 $builder->build;
 #Entonces el personaje tiene sex
 ok($personaje->sex, 'el personaje tiene sex');
-
 #################################################
 #Cuando ejecuto build en un ModernTimes::Builder::Personaje en el personaje definiendo un sex
 $personaje = Personaje->new;
@@ -46,4 +45,3 @@ $builder->personaje($personaje);
 $builder->build;
 #Entonces el personaje tiene sex f
 is($personaje->sex,'f', 'el personaje tiene sex f');
-

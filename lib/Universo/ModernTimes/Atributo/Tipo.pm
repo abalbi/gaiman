@@ -64,8 +64,8 @@ sub validar {
   my $self = shift;
   my $valor = shift;
   return 1 if !$self->validos;
-	return 1 if scalar @{$self->validos} eq 0;
-	return 1 if scalar grep {$_ eq $valor} @{$self->validos};
+  return 1 if scalar @{$self->validos} eq 0;
+  return 1 if scalar grep {$_ eq $valor} @{$self->validos};
 	return 0;
 }
 
