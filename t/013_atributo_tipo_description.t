@@ -28,6 +28,7 @@ my $builder = Universo->actual->builder_personaje;
 	$builder->build({sex => 'f', appearance => 5, size => 'M', heir_color => 'castañ[a|o]', heir_long => 'largo'});
 	#Entonces el personaje tendra description
 	like $personaje->description_texto, qr/castaña/;
+	like $personaje->description_texto, qr/Tiene \d\d años/;
 	like $personaje->description_texto, qr/sus medidas son 80-50-80/;
 	like $personaje->description_texto, qr/Mide 1.5, pesa 40 kg/;
 }

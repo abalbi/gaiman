@@ -24,6 +24,9 @@ sub description_texto {
 		Gaiman->oracion($self, 
 			'Sus ojos son', $self->eyes_color,
 		),
+		Gaiman->oracion($self, 
+			'Tiene', $self->age, 'años'
+		),
 		Gaiman->oracion($self,
 			'Mide', $self->height,
 			', pesa', $self->weight, 'kg',
@@ -38,5 +41,11 @@ sub t {
 	my $str = shift;
 	return Gaiman->t($self, $str);
 	
+}
+
+sub age {
+	my $self = shift;
+	my $date_birth = DateTime->from_epoch(epoch => $self->date_birth);
+	return Universo->actual->base_date->year - $date_birth->year;	
 }
 1;
