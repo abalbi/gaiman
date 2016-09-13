@@ -10,7 +10,7 @@ use Gaiman;
 #Y tener una instancia de ModernTimes
 ModernTimes->new;
 #Y un builder de personaje
-my $builder = ModernTimes::Builder::Personaje->new;
+my $builder = Universo->actual->builder_personaje;
 {
 #Cuando le hago build en un nuevo personaje
 my $personaje = ModernTimes::Personaje->new;

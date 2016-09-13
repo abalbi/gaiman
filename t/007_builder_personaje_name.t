@@ -9,12 +9,12 @@ use Gaiman;
 #Y tengo una instancia de ModernTimes
 ModernTimes->new;
 #Y un builder de personaje
-my $builder = ModernTimes::Builder::Personaje->new;
+my $builder = Universo->actual->builder_personaje;
 
 {
 	#Cuando le hago build en un nuevo personaje
 	my $personaje = Personaje->new;
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build;
 	#Entonces el personaje tendra un name
@@ -25,7 +25,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
   #Cuando le hago build en un personaje que ya tenie name
   my $personaje = Personaje->new;
   $personaje->name('Ivana');
-  my $builder = ModernTimes::Builder::Personaje->new;
+  my $builder = Universo->actual->builder_personaje;
   $builder->personaje($personaje);
   $builder->build;
   #Entonces el personaje tendra el mismo name
@@ -35,7 +35,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 {
   #Cuando le hago build con el argumento name a un nuevo personaje
   my $personaje = Personaje->new;
-  my $builder = ModernTimes::Builder::Personaje->new;
+  my $builder = Universo->actual->builder_personaje;
   $builder->personaje($personaje);
   $builder->build({name => 'Ivana'});
   #Entonces el personaje tendra el name definido en el argumento

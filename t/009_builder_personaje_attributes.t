@@ -9,11 +9,11 @@ use Gaiman;
 #Y tener una instancia de ModernTimes
 ModernTimes->new;
 #Y un builder de personaje
-my $builder = ModernTimes::Builder::Personaje->new;
+my $builder = Universo->actual->builder_personaje;
 {
 	#Cuando le hago build en un nuevo personaje
 	my $personaje = Personaje->new;
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build;
 	#Entonces el personaje tendra attributes
@@ -32,7 +32,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	#Cuando le hago build en un personaje con appearance 5
 	my $personaje = Personaje->new;
 	$personaje->appearance(5);
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build;
 	#Entonces el personaje tendra attributes
@@ -53,7 +53,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	my $personaje = Personaje->new;
 	$personaje->appearance(5);
 	$personaje->charisma(5);
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	#Entonces se disparar un error por que excede el maximo asignable
 	dies_ok {
@@ -69,7 +69,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	$personaje->charisma(4);
 	$personaje->wits(5);
 	$personaje->perception(4);
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	#Entonces se disparar un error por que dos categorias tiene una sola opcion posible
 	dies_ok {
@@ -87,7 +87,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	$personaje->perception(2);
 	$personaje->stamina(5);
 	$personaje->dexterity(2);
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	#Entonces se disparar un error por que se trata de asignar 2 veces el mismo valor a dos subcategorias distintas
 	dies_ok {

@@ -210,5 +210,16 @@ sub init {
     return 0;
   }
 
+  sub builder_evento {
+    my $self = shift;
+    $self->{_builder_evento} = ModernTimes::Builder::Evento->new;
+    return $self->{_builder_evento};
+  }
+
+  sub builder_personaje {
+    my $self = shift;
+    $self->{_builder_personaje} = ModernTimes::Builder::Personaje->new;
+    return $self->{_builder_personaje};
+  }
 
 1;

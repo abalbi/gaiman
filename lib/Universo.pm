@@ -1,6 +1,6 @@
 package Universo;
 use Data::Dumper;
-use fields qw(_atributo_tipos);
+use fields qw(_atributo_tipos _builder_personaje _builder_evento);
 
 our $actual;
   sub new {

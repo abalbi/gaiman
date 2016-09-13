@@ -9,11 +9,11 @@ use Gaiman;
 #Y tener una instancia de ModernTimes
 ModernTimes->new;
 #Y un builder de personaje
-my $builder = ModernTimes::Builder::Personaje->new;
+my $builder = Universo->actual->builder_personaje;
 {
 	#Cuando le hago build en un nuevo personaje
 	my $personaje = Personaje->new;
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build;
 	#Entonces el personaje tendra las virtudes conviction, instinct y courage
@@ -25,7 +25,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	#Cuando le hago build en un personaje que ya tenie conviction
 	my $personaje = Personaje->new;
 	$personaje->conviction(3);
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build;
 	#Entonces el personaje tendra el mismo conviction
@@ -37,7 +37,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 {
 	#Cuando le hago build con el argumento conviction a un nuevo personaje
 	my $personaje = Personaje->new;
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build({conviction => 4});
 	#Entonces el personaje tendra el conviction definido en el argumento
@@ -50,7 +50,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	#Cuando le hago build con el argumento conviction a un personaje que tenga instinct
 	my $personaje = Personaje->new;
 	$personaje->instinct(3);
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build({conviction => 4});
 	#Entonces el personaje tendra el conviction definido en el argumento
@@ -66,7 +66,7 @@ my $builder = ModernTimes::Builder::Personaje->new;
 	#Cuando le hago build argumentos que superen el maximo de puntos a asignar a la subcategoria
 	#Entonces dara un error
 	my $personaje = Personaje->new;
-	my $builder = ModernTimes::Builder::Personaje->new;
+	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	dies_ok {
 		$builder->build({conviction => 5, instinct => 5
