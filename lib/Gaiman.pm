@@ -7,6 +7,7 @@ use JSON;
 use Carp qw(confess cluck);
 
 use Personaje;
+use Evento;
 use Entorno;
 use Universo;
 use Universo::ModernTimes;

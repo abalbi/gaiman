@@ -1,6 +1,6 @@
 package ModernTimes::Atributo::Tipo;
 use strict;
-use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno);
+use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno _crear_eventos);
 use Data::Dumper;
 
 sub new {
@@ -12,10 +12,12 @@ sub new {
 	$self->{_posibles} = $args->{posibles};
 	$self->{_subcategoria} = $args->{subcategoria};
 	$self->{_categoria} = $args->{categoria};
-	$self->{_alguno} = $args->{alguno};
+  $self->{_alguno} = $args->{alguno};
+  $self->{_crear_eventos} = $args->{crear_eventos};
 	Gaiman->logger->trace("Se instancio ",ref $self);
 	return $self;
 }
+
 sub es {
 	my $self = shift;
 	my $key = shift;
@@ -91,5 +93,15 @@ sub alguno {
 		return $valor;
 	}
 	return undef;
+}
+
+sub crear_eventos {
+  my $self = shift;
+  my $contexto = shift;
+  if($self->{_crear_eventos}) {
+    my $eventos = &{$self->{_crear_eventos}}($self, $contexto);
+    return $eventos;
+  }
+  return undef;    
 }
 1;

@@ -40,13 +40,29 @@ our $actual;
     $self->argumentos($args);
     $self->estructura({});
     $self->preparar('sex');
+    $self->preparar('date_birth');
     $self->preparar('name');
     $self->preparar('virtues', 10);
     $self->preparar('attribute', [10,8,6]);
     $self->preparar('ability', [13,9,5]);
     $self->preparar('description');
     $self->asignar;
+    $self->crear_eventos;
     return $self;  	
+  }
+
+  sub crear_eventos {
+    my $self = shift;
+    my $atributos = Universo->actual->atributo_tipos;
+    foreach my $atributo (@{$atributos}) {
+      my $key = $atributo->nombre;
+      if($self->personaje->$key) {
+        my $eventos = $atributo->crear_eventos($self->personaje);
+        push @{$self->personaje->eventos}, @{$eventos} if defined $eventos;
+        Gaiman->logger->trace('crear_eventos: ', $key);
+      }
+    }
+
   }
 
   sub preparar {

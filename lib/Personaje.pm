@@ -1,7 +1,7 @@
 package Personaje;
 use strict;
 use JSON;
-use fields qw(_atributos);
+use fields qw(_atributos _eventos);
 our $AUTOLOAD;
 use Data::Dumper;
 	sub new {
@@ -22,7 +22,7 @@ use Data::Dumper;
       return $self->{_atributos}->{$atributo}->{tipo} if $tipo eq 'tipo';
       return $self->atributo($atributo,@_);
     }
-    die "No existe el metodo o atributo '$method'";
+    Gaiman->error("No existe el metodo o atributo '$method'");
   }
 
   sub atributo {
@@ -45,6 +45,12 @@ use Data::Dumper;
   sub atributos {
     my $self = shift;
     return $self->{_atributos};
+  }
+
+  sub eventos {
+    my $self = shift;
+    $self->{_eventos} = [] if !$self->{_eventos};
+    return $self->{_eventos};
   }
 
   sub es {

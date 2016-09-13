@@ -23,6 +23,12 @@ our $actual;
   sub build {
     my $self = shift;
     my $args = shift;
+    $self->evento(ModernTimes::Evento->new) if !$self->evento;
+    my $tipo = Universo->actual->evento_tipo('NACER');
+    $self->evento->tipo($tipo);
+    foreach my $rol (@{$tipo->roles}) {
+      $self->evento->$rol($args->{$rol});
+    }
     return $self;  	
   }
 

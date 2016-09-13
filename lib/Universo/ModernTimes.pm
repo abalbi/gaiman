@@ -2,16 +2,77 @@ package ModernTimes;
 use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
+use Universo::ModernTimes::Evento::Tipo;
 use Universo::ModernTimes::Builder::Personaje;
+use Universo::ModernTimes::Builder::Evento;
 use Universo::ModernTimes::Personaje;
+use Universo::ModernTimes::Evento;
 use Data::Dumper;
+use DateTime;
 use List::Util qw(shuffle);
+
+sub base_date {
+  my $self = shift;
+  return DateTime->new(year => 1990);  
+}
 
 sub init {
   my $self = shift;
+  push @{$self->evento_tipos}, ModernTimes::Evento::Tipo->new({
+    nombre => 'NACER',
+    roles => [qw(sujeto)],
+    description => sub {
+      my $evento_tipo = shift;
+      my $evento = shift;
+      my $nace = DateTime->from_epoch(epoch => $evento->sujeto->date_birth);
+      my $str = Gaiman->parrafo(
+        Gaiman->oracion($evento->sujeto, 
+          $evento->sujeto->name,
+          'nace',
+          'el',
+          $nace->strftime('%d de %b de %Y a las %R')
+
+        )
+      )
+    }
+  });
+
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'sex',
     validos => [qw(f m)],
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'date_birth',
+    alguno => sub {
+      my $atributo_tipo = shift;
+      my $age = 15 + int rand 25;
+      my $date_birth;
+      while (1) {
+        eval {
+          $date_birth = DateTime->new(
+            year  => Universo->actual->base_date->year - $age,
+            month => 1 + int rand 12,
+            day => 1 + int rand 31,
+            hour => int rand 24,
+            minute => int rand 60,
+          );
+        };
+        if($@) {
+          next;
+        }
+        last;
+      } 
+      return $date_birth->epoch;
+    },
+    crear_eventos => sub {
+      my $atributo_tipo = shift;
+      my $personaje = shift;
+      my $eventos = [];
+      my $builder_evento = Universo->actual->builder_evento;
+      $builder_evento->build({sujeto => $personaje});
+      push @{$eventos}, $builder_evento->evento;
+      return $eventos;      
+    }
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'name',
