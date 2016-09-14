@@ -8,6 +8,7 @@ use Getopt::Complete (
       'random!'		=> undef,
       'srand'		=> undef,
       'json!'		=> undef,
+      'detalle!'		=> undef,
 );
 
 my %arg;
@@ -15,6 +16,7 @@ $arg{build} = $ARGS{build};
 $arg{random}  = $ARGS{random};
 $arg{srand}  = $ARGS{srand};
 $arg{json}    = $ARGS{json};
+$arg{detalle}    = $ARGS{detalle};
 $arg{log}    = $ARGS{log} ? $ARGS{log} : q(OFF);
 
 print Gaiman->instancia({%arg})->runner({%arg});

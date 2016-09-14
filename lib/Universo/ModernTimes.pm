@@ -229,6 +229,7 @@ sub init {
     nombre => $_,
     validos => [1..5],
     subcategoria => 'virtues',
+    categoria => 'advantage',
   })} qw(conviction instinct courage);
   push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
     nombre => $_, 
@@ -241,13 +242,13 @@ sub init {
     validos => [1..5], 
     categoria => 'attribute',
     subcategoria => 'social',
-  })} qw(manipulation appearance charisma);
+  })} qw(charisma manipulation appearance);
   push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
     nombre => $_, 
     validos => [1..5], 
     categoria => 'attribute',
     subcategoria => 'mental',
-  })} qw(intelligence perception wits);
+  })} qw(perception intelligence wits);
   push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
     nombre => $_, 
     validos => [0..5], 

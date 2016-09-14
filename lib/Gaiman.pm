@@ -80,6 +80,14 @@ our $instancia;
     return $resultado;
   }
 
+  sub parrafos {
+    my $self = shift;
+    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
+    my $resultado = join("\n", @_);
+    return $resultado;
+  }
+
+
   sub atributos {
     my $self = shift;
     $self = $self eq __PACKAGE__ ? $self->instancia : $self;
@@ -99,6 +107,8 @@ our $instancia;
     delete $arg->{random};
     my $json = $arg->{json};
     delete $arg->{json};
+    my $detalle = $arg->{detalle};
+    delete $arg->{detalle};
     my $log = $arg->{log};
     delete $arg->{log};
     $srand = $arg->{srand};
@@ -106,7 +116,7 @@ our $instancia;
     my $str = '';
     my $self = Gaiman->instancia;
     my $texto = 1;
-    $texto = 0 if $json;
+    $texto = 0 if $json || $detalle;
     if($build eq 'personaje' || $build eq 'per') {
       ModernTimes->new;
       my $builder = ModernTimes::Builder::Personaje->new;
@@ -115,6 +125,7 @@ our $instancia;
       $builder->build($arg);
       Entorno->actual->agregar($personaje);
       $str .= $personaje->json."\n" if $json;
+      $str .= $personaje->detalle."\n" if $detalle;
       $str .= $personaje->description_texto if $texto;
     }
     return $str;
