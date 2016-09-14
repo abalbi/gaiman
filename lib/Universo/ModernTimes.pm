@@ -267,6 +267,12 @@ sub init {
     categoria => 'ability',
     subcategoria => 'knowledge',
   })} qw(academics bureaucracy computer finance investigation law linguistics medicine occult politics research science);
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+    nombre => $_, 
+    validos => [0..5], 
+    categoria => 'advantage',
+    subcategoria => 'background',
+  })} qw(allies contacts fame influence mentor resources);
 
   Gaiman->logger->trace('Se agregaron los atributo_tipos: ',join ',', map {$_->nombre} @{$self->atributo_tipos});
 }
