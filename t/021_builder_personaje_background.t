@@ -18,7 +18,7 @@ my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build({sex => 'f'});
 	#Entonces el personaje tendra backgrounds
-	my $backgrounds = [qw(allies contacts fame influence mentor resources status)];
+	my $backgrounds = [qw(allies contacts fame influence mentor resources)];
 	ok scalar(grep {$personaje->$_ != 0} @$backgrounds), 'el personaje tendra backgrounds';
 
 }

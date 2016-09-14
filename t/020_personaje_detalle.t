@@ -30,7 +30,8 @@ talent: athletics: \d; brawl: \d; dodge: \d; empathy: \d; expression: \d; intimi
 skill: animal_ken: \d; crafts: \d; drive: \d; etiquette: \d; firearms: \d; melee: \d; performance: \d; security: \d; stealth: \d; survival: \d
 knowledge: academics: \d; bureaucracy: \d; computer: \d; finance: \d; investigation: \d; law: \d; linguistics: \d; medicine: \d; occult: \d; politics: \d; research: \d; science: \d
 advantage
-virtues: conviction: \d; instinct: \d; courage: \d$/,
+virtues: conviction: \d; instinct: \d; courage: \d
+background: allies: \d; contacts: \d; fame: \d; influence: \d; mentor: \d; resources: \d$/,
     'puedo obtener un detalle del personaje';
 }
 

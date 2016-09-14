@@ -1,4 +1,4 @@
-package ModernTimes::Builder::Evento;
+package ModernTimes::Evento::Builder;
 use fields qw(_evento _argumentos);
 use strict;
 use Data::Dumper;

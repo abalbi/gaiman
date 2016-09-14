@@ -119,7 +119,7 @@ our $instancia;
     $texto = 0 if $json || $detalle;
     if($build eq 'personaje' || $build eq 'per') {
       ModernTimes->new;
-      my $builder = ModernTimes::Builder::Personaje->new;
+      my $builder = Universo->actual->builder_personaje;
       my $personaje = ModernTimes::Personaje->new;
       $builder->personaje($personaje);
       $builder->build($arg);

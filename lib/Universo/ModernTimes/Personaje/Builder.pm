@@ -1,4 +1,4 @@
-package ModernTimes::Builder::Personaje;
+package ModernTimes::Personaje::Builder;
 use fields qw(_personaje _argumentos _estructura);
 use strict;
 use Data::Dumper;

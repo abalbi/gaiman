@@ -3,8 +3,8 @@ use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
 use Universo::ModernTimes::Evento::Tipo;
-use Universo::ModernTimes::Builder::Personaje;
-use Universo::ModernTimes::Builder::Evento;
+use Universo::ModernTimes::Personaje::Builder;
+use Universo::ModernTimes::Evento::Builder;
 use Universo::ModernTimes::Personaje;
 use Universo::ModernTimes::Evento;
 use Data::Dumper;
@@ -288,13 +288,13 @@ sub init {
 
   sub builder_evento {
     my $self = shift;
-    $self->{_builder_evento} = ModernTimes::Builder::Evento->new;
+    $self->{_builder_evento} = ModernTimes::Evento::Builder->new;
     return $self->{_builder_evento};
   }
 
   sub builder_personaje {
     my $self = shift;
-    $self->{_builder_personaje} = ModernTimes::Builder::Personaje->new;
+    $self->{_builder_personaje} = ModernTimes::Personaje::Builder->new;
     return $self->{_builder_personaje};
   }
 
