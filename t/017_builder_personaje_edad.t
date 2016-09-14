@@ -22,6 +22,7 @@ my $builder = Universo->actual->builder_personaje;
 	is $evento->nombre, 'NACER', 'tiene el nombre correcto';
 	is $evento->tipo->nombre, 'NACER', 'es del tipo que corresponde';
 	is $evento->sujeto, $personaje, 'tiene sujeto';
+	is $evento->epoch, $personaje->date_birth, 'tiene fecha';
 	like $evento->description, qr/ nace el \d\d de \w\w\w de \d\d\d\d a las \d\d:\d\d/, 'tiene descripcion';
 }
 

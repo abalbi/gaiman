@@ -40,6 +40,7 @@ our $actual;
     $self->argumentos($args);
     $self->estructura({});
     $self->preparar('sex');
+    $self->preparar('age');
     $self->preparar('date_birth');
     $self->preparar('name');
     $self->preparar('virtues', 10);

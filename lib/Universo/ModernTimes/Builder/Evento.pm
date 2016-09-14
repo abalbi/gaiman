@@ -26,6 +26,7 @@ our $actual;
     $self->evento(ModernTimes::Evento->new) if !$self->evento;
     my $tipo = Universo->actual->evento_tipo('NACER');
     $self->evento->tipo($tipo);
+    $self->evento->epoch($args->{epoch});
     foreach my $rol (@{$tipo->roles}) {
       $self->evento->$rol($args->{$rol});
     }

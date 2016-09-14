@@ -43,9 +43,4 @@ sub t {
 	
 }
 
-sub age {
-	my $self = shift;
-	my $date_birth = DateTime->from_epoch(epoch => $self->date_birth);
-	return Universo->actual->base_date->year - $date_birth->year;	
-}
 1;

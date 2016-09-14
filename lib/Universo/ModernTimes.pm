@@ -42,10 +42,18 @@ sub init {
     validos => [qw(f m)],
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'age',
+    alguno => sub {
+      my $atributo_tipo = shift;
+      return 15 + int rand 25;
+    },
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'date_birth',
     alguno => sub {
       my $atributo_tipo = shift;
-      my $age = 15 + int rand 25;
+      my $personaje = shift;
+      my $age = $personaje->{age};
       my $date_birth;
       while (1) {
         eval {
@@ -69,7 +77,7 @@ sub init {
       my $personaje = shift;
       my $eventos = [];
       my $builder_evento = Universo->actual->builder_evento;
-      $builder_evento->build({sujeto => $personaje});
+      $builder_evento->build({sujeto => $personaje, epoch => $personaje->date_birth});
       push @{$eventos}, $builder_evento->evento;
       return $eventos;      
     }
