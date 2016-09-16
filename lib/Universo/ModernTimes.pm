@@ -125,29 +125,15 @@ sub init {
     validos => [qw(azules verdes marrones negros miel)],
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'size',
-    categoria => 'description',
-    subcategoria => 'body',
-    validos => [qw(XS S M L XL)],
-  });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'height',
     categoria => 'description',
     subcategoria => 'body',
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $medida = $personaje->{sex} eq 'f' ? 1.30 : 1.40;
-      $medida += .1 if $personaje->{size} eq 'XS';
-      $medida += .2 if $personaje->{size} eq 'S';
-      $medida += .3 if $personaje->{size} eq 'M';
-      $medida += .4 if $personaje->{size} eq 'L';
-      $medida += .5 if $personaje->{size} eq 'XL';
-      $medida += .1 if $personaje->{stamina} + $personaje->{strengh} >= 8;
-      $medida -= .1 if $personaje->{stamina} + $personaje->{strengh} <= 3;
-      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * .05);
-      return $medida;
-    },
+      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
+      return $medida;      
+    }
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'weight',
@@ -156,17 +142,20 @@ sub init {
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $medida = $personaje->{sex} eq 'f' ? 20 : 30;
-      $medida += 10 if $personaje->{size} eq 'XS';
-      $medida += 20 if $personaje->{size} eq 'S';
-      $medida += 30 if $personaje->{size} eq 'M';
-      $medida += 40 if $personaje->{size} eq 'L';
-      $medida += 50 if $personaje->{size} eq 'XL';
-      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
-      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
-      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 5);
-      return $medida;
-    },
+      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
+      return $medida;      
+    }
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+    nombre => 'size',
+    categoria => 'description',
+    subcategoria => 'body',
+    alguno => sub {
+      my $atributo_tipo = shift;
+      my $personaje = shift;
+      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo};
+      return $medida;      
+    }
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'bust',
@@ -175,17 +164,9 @@ sub init {
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $medida = $personaje->{sex} eq 'f' ? 80 : 90;
-      $medida += 4 if $personaje->{size} eq 'XS';
-      $medida += 8 if $personaje->{size} eq 'S';
-      $medida += 10 if $personaje->{size} eq 'M';
-      $medida += 15 if $personaje->{size} eq 'L';
-      $medida += 20 if $personaje->{size} eq 'XL';
-      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
-      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
-      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 2);
-      return $medida;
-    },
+      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
+      return $medida;      
+    }
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'waist',
@@ -194,17 +175,9 @@ sub init {
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $medida = $personaje->{sex} eq 'f' ? 50 : 65;
-      $medida += 4 if $personaje->{size} eq 'XS';
-      $medida += 8 if $personaje->{size} eq 'S';
-      $medida += 10 if $personaje->{size} eq 'M';
-      $medida += 15 if $personaje->{size} eq 'L';
-      $medida += 20 if $personaje->{size} eq 'XL';
-      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
-      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
-      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 2);
-      return $medida;
-    },
+      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
+      return $medida;      
+    }
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'hip',
@@ -213,17 +186,9 @@ sub init {
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $medida = $personaje->{sex} eq 'f' ? 80 : 90;
-      $medida += 4 if $personaje->{size} eq 'XS';
-      $medida += 8 if $personaje->{size} eq 'S';
-      $medida += 10 if $personaje->{size} eq 'M';
-      $medida += 15 if $personaje->{size} eq 'L';
-      $medida += 20 if $personaje->{size} eq 'XL';
-      $medida += 10 if $personaje->{stamina} + $personaje->{strengh} >= 8;
-      $medida -= 10 if $personaje->{stamina} + $personaje->{strengh} <= 3;
-      $medida += (5 - $personaje->{appearance}) * ([-1, 1]->[int rand 2] * 2);
-      return $medida;
-    },
+      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
+      return $medida;      
+    }
   });
   push @{$self->atributo_tipos}, map {ModernTimes::Atributo::Tipo->new({
     nombre => $_,
@@ -296,6 +261,134 @@ sub init {
     my $self = shift;
     $self->{_builder_personaje} = ModernTimes::Personaje::Builder->new;
     return $self->{_builder_personaje};
+  }
+
+  sub tabla_biometrica_figuras {
+    return {
+      rectangulo => { medidas => [90,90,90], appearance => [1..3]},
+      triangulo => { medidas => [80,60,100], appearance => [2..5]},
+      reloj_de_arena => { medidas => [90,60,90], appearance => [2..5]},
+      triangulo_invertido => { medidas => [100,80,70], appearance => [2..5]},
+      ovalo => { medidas => [90,100,70], appearance => [1..3]},
+    }
+  }
+
+  sub tabla_biometrica_tallas {
+    return {
+      XS => [
+        { rango_altura => [140..155], rango_peso => [40..50]}, 
+      ],
+      S => [
+        { rango_altura => [140..155], rango_peso => [50..60]}, 
+        { rango_altura => [155..170], rango_peso => [40..60]}, 
+      ],
+      M => [
+        { rango_altura => [140..155], rango_peso => [60..70]}, 
+        { rango_altura => [155..170], rango_peso => [60..80]}, 
+        { rango_altura => [170..185], rango_peso => [50..80]}, 
+        { rango_altura => [185..200], rango_peso => [50..70]}, 
+      ],
+      L => [
+        { rango_altura => [170..185], rango_peso => [80..90]}, 
+        { rango_altura => [185..200], rango_peso => [70..100]}, 
+        { rango_altura => [200..210], rango_peso => [70..100]}, 
+      ],
+      XL => [
+        { rango_altura => [170..185], rango_peso => [90..110]}, 
+        { rango_altura => [185..200], rango_peso => [100..110]}, 
+        { rango_altura => [200..210], rango_peso => [100..110]}, 
+      ]
+    }
+  }
+
+  sub tabla_biometrica_imc {
+    return [
+      {nombre => q(delgadez 3), rango => [0..5],    figuras => [qw(rectangulo)]},
+      {nombre => q(delgadez 2), rango => [5..10],   figuras => [qw(rectangulo triangulo_invertido)]},
+      {nombre => q(delgadez 1), rango => [10..20],  figuras => [qw(rectangulo triangulo reloj_de_arena)]},
+      {nombre => q(normal),     rango => [2..25],   figuras => [qw(triangulo_invertido reloj_de_arena triangulo)]},
+      {nombre => q(obecidad 1), rango => [25..30],  figuras => [qw(triangulo_invertido triangulo)]},
+      {nombre => q(obecidad 2), rango => [30..35],  figuras => [qw(ovalo triangulo)]},
+      {nombre => q(obecidad 3), rango => [35..100], figuras => [qw(ovalo)]},
+    ];
+
+  }
+
+  sub crear_biometria {
+    my $self = shift;
+    my $personaje = shift;
+    my $height = $personaje->{height} ? $personaje->{height} : 0;
+    my $weight = $personaje->{weight} ? $personaje->{weight} : 0;
+    my $bust = $personaje->{bust} ? $personaje->{bust} : 0;
+    my $waist = $personaje->{waist} ? $personaje->{waist} : 0;
+    my $hip = $personaje->{hip} ? $personaje->{hip} : 0;
+    my $size = $personaje->{size} ? $personaje->{size} : 0;
+    my $peso;
+    my $medidas;
+
+    my $hash = {
+      height => $height,
+      weight => $weight,
+      size => $size,
+      bust => $bust,
+      waist => $waist,
+      hip => $hip,
+    };
+    return $hash if $height && $weight && $bust && $waist && $hip;
+    $height = $height + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
+    $height = $height + ($personaje->{appearance} * ((170 - $height)/6));
+    $weight = $weight + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
+    $weight = $weight + ($personaje->{appearance} * ((70 - $weight)/6));
+
+    my $size = [sort keys %{$self->tabla_biometrica_tallas}]->[int rand scalar sort keys %{$self->tabla_biometrica_tallas}];
+
+    while (1) {
+      $height = (int rand 70) + 140;
+      my $next = 0;
+      my $rangos = $self->tabla_biometrica_tallas->{$size}->[int rand scalar @{$self->tabla_biometrica_tallas->{$size}}];
+      my $height_min = $rangos->{rango_altura}->[0];
+      my $height_max = $rangos->{rango_altura}->[$#{$rangos->{rango_altura}}];
+      if($height_max >= $height && $height_min <= $height) {
+        $weight = $rangos->{rango_peso}->[int rand $#{$rangos->{rango_peso}}];
+        $next = 0;
+      } else {
+        $next = 1;  
+      }
+      next if $next;
+      last;
+    }
+
+
+
+    $height = $height / 100;
+
+    my $figura;
+    my $imc = $weight /($height * $height);
+
+    my $nombre;
+    foreach my $rango (@{$self->tabla_biometrica_imc}) {
+      if($imc > $rango->{rango}->[0] && $imc < $rango->{rango}->[$#{$rango->{rango}}]) {
+        $nombre = $rango->{nombre};
+        $figura = $rango->{figuras}->[int rand scalar @{$rango->{figuras}}];
+        $medidas = [
+          $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $personaje->{appearance}) * (int rand 10)),
+          $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $personaje->{appearance}) * (int rand 10)),
+          $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $personaje->{appearance}) * (int rand 10)),
+        ];
+      } 
+    }
+    $weight = int $weight;
+    $height = sprintf "%.2f", $height;
+
+    $hash = {
+      height => $height,
+      weight => $weight,
+      size => $size,
+      bust => $medidas->[0],
+      waist => $medidas->[1],
+      hip => $medidas->[2],
+    };
+    return $hash;    
   }
 
 1;

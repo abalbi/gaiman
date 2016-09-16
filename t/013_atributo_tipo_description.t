@@ -29,6 +29,6 @@ my $builder = Universo->actual->builder_personaje;
 	#Entonces el personaje tendra description
 	like $personaje->description_texto, qr/castaña/;
 	like $personaje->description_texto, qr/Tiene \d\d años/;
-	like $personaje->description_texto, qr/sus medidas son \d\d-\d\d-\d\d/;
-	like $personaje->description_texto, qr/Mide \d.\d, pesa \d\d kg/;
+	like $personaje->description_texto, qr/sus medidas son \d\d\d*-\d\d-\d\d/;
+	like $personaje->description_texto, qr/Mide \d.\d\d, pesa \d\d kg/;
 }
