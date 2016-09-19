@@ -18,10 +18,10 @@ my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	$builder->build;
 	#Entonces el personaje tendra datos de description body
-	like $personaje->size, qr/^(XS|S|M|L|XL)$/, 'tiene size';
-	like $personaje->height, qr/\d.\d\d/, 'tiene altura';
-	like $personaje->weight, qr/\d\d/, 'tiene peso';
-	like $personaje->bust, qr/\d\d/, 'tiene busto';
-	like $personaje->waist, qr/\d\d/, 'tiene cintura';
-	like $personaje->hip, qr/\d\d/, 'tiene cadera';
+	like $personaje->body->{size}, qr/^(XS|S|M|L|XL)$/, 'tiene size';
+	like $personaje->body->{height}, qr/\d.\d\d/, 'tiene altura';
+	like $personaje->body->{weight}, qr/\d\d/, 'tiene peso';
+	like $personaje->body->{bust}, qr/\d\d/, 'tiene busto';
+	like $personaje->body->{waist}, qr/\d\d/, 'tiene cintura';
+	like $personaje->body->{hip}, qr/\d\d/, 'tiene cadera';
 }

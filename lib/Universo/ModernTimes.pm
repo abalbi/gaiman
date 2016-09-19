@@ -2,6 +2,8 @@ package ModernTimes;
 use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
+use Universo::ModernTimes::Atributo::Tipo::Puntos;
+use Universo::ModernTimes::Atributo::Tipo::Hash;
 use Universo::ModernTimes::Evento::Tipo;
 use Universo::ModernTimes::Personaje::Builder;
 use Universo::ModernTimes::Evento::Builder;
@@ -10,6 +12,7 @@ use Universo::ModernTimes::Evento;
 use Data::Dumper;
 use DateTime;
 use List::Util qw(shuffle);
+use JSON;
 
 sub base_date {
   my $self = shift;
@@ -124,116 +127,58 @@ sub init {
     subcategoria => 'face',
     validos => [qw(azules verdes marrones negros miel)],
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'height',
-    categoria => 'description',
-    subcategoria => 'body',
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Hash->new({
+    nombre => 'body',
+    requeridos => [qw(height weight size bust waist hip)],
     alguno => sub {
       my $atributo_tipo = shift;
-      my $personaje = shift;
-      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
-      return $medida;      
+      my $body = shift;
+      return $self->crear_biometria($body);
     }
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'weight',
-    categoria => 'description',
-    subcategoria => 'body',
-    alguno => sub {
-      my $atributo_tipo = shift;
-      my $personaje = shift;
-      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
-      return $medida;      
-    }
-  });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'size',
-    categoria => 'description',
-    subcategoria => 'body',
-    validos => [qw(XS S M L XL)], 
-    alguno => sub {
-      my $atributo_tipo = shift;
-      my $personaje = shift;
-      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
-      return $medida;
-    }
-  });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'bust',
-    categoria => 'description',
-    subcategoria => 'body',
-    alguno => sub {
-      my $atributo_tipo = shift;
-      my $personaje = shift;
-      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
-      return $medida;      
-    }
-  });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'waist',
-    categoria => 'description',
-    subcategoria => 'body',
-    alguno => sub {
-      my $atributo_tipo = shift;
-      my $personaje = shift;
-      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
-      return $medida;      
-    }
-  });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
-    nombre => 'hip',
-    categoria => 'description',
-    subcategoria => 'body',
-    alguno => sub {
-      my $atributo_tipo = shift;
-      my $personaje = shift;
-      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
-      return $medida;      
-    }
-  });
-  push @{$self->atributo_tipos}, map {ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map {ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_,
     validos => [1..5],
     subcategoria => 'virtues',
     categoria => 'advantage',
   })} qw(conviction instinct courage);
-  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_, 
     validos => [1..5], 
     categoria => 'attribute',
     subcategoria => 'physical',
   })} qw(strengh dexterity stamina);
-  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_, 
     validos => [1..5], 
     categoria => 'attribute',
     subcategoria => 'social',
   })} qw(charisma manipulation appearance);
-  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_, 
     validos => [1..5], 
     categoria => 'attribute',
     subcategoria => 'mental',
   })} qw(perception intelligence wits);
-  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_, 
     validos => [0..5], 
     categoria => 'ability',
     subcategoria => 'talent',
   })} qw(athletics brawl dodge empathy expression intimidation leadership streetwise subterfuge);
-  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_, 
     validos => [0..5], 
     categoria => 'ability',
     subcategoria => 'skill',
   })} qw(animal_ken crafts drive etiquette firearms melee performance security stealth survival);
-  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_, 
     validos => [0..5], 
     categoria => 'ability',
     subcategoria => 'knowledge',
   })} qw(academics bureaucracy computer finance investigation law linguistics medicine occult politics research science);
-  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, map { ModernTimes::Atributo::Tipo::Puntos->new({
     nombre => $_, 
     validos => [0..5], 
     categoria => 'advantage',
@@ -315,60 +260,86 @@ sub init {
 
   }
 
+  sub crear_biometria_altura {
+    my $self = shift;
+    my $personaje = shift;
+    my $height = (int rand 70) + 140;
+    $height = $height + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
+    $height = $height + ($personaje->{appearance} * ((170 - $height)/6));
+    $height -= 10 if $personaje->{sex} eq 'f';
+    return $height;
+  }
+
   sub crear_biometria {
     my $self = shift;
     my $personaje = shift;
     my $hash = {};
-    $hash->{height} = $personaje->{height} ? $personaje->{height} : 0;
-    $hash->{weight} = $personaje->{weight} ? $personaje->{weight} : 0;
-    $hash->{bust} = $personaje->{bust} ? $personaje->{bust} : 0;
-    $hash->{waist} = $personaje->{waist} ? $personaje->{waist} : 0;
-    $hash->{hip} = $personaje->{hip} ? $personaje->{hip} : 0;
-    $hash->{size} = $personaje->{size} ? $personaje->{size} : 0;
+    $hash->{height} = $personaje->{height}  ? $personaje->{height}  : 0;
+    $hash->{weight} = $personaje->{weight}  ? $personaje->{weight}  : 0;
+    $hash->{bust}   = $personaje->{bust}    ? $personaje->{bust}    : 0;
+    $hash->{waist}  = $personaje->{waist}   ? $personaje->{waist}   : 0;
+    $hash->{hip}    = $personaje->{hip}     ? $personaje->{hip}     : 0;
+    $hash->{size}   = $personaje->{size}    ? $personaje->{size}    : 0;
+    Gaiman->logger->debug('Se tiene que definir la description del cuerpo: ', encode_json($hash));
     return $hash if $hash->{height} && $hash->{weight} && $hash->{bust} && $hash->{waist} && $hash->{hip};
+    $hash->{height} = $self->crear_biometria_altura($personaje) if !$personaje->{height};
+    $hash->{height} = $hash->{height} * 100 if $hash->{height} < 100;
+    $hash->{height} = $hash->{height} >= 140 ? $hash->{height} : 140;
+    $hash->{height} = $hash->{height} <= 210 ? $hash->{height} : 210;
+ 
+    my $tbl = $self->tabla_biometrica_tallas;
+    my $sizes = [grep {
+      my $talla = $_;
+      my $boo = 0;
+      foreach my $rangos (@{$tbl->{$_}}) {
+        $boo = 1 if scalar grep {$_ == $hash->{height}} @{$rangos->{rango_altura}};
+      } 
+      $boo;
+    } keys %$tbl] if $hash->{height};
 
-    $hash->{height} = $hash->{height} + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
-    $hash->{height} = $hash->{height} + ($personaje->{appearance} * ((170 - $hash->{height})/6));
-    $hash->{weight} = $hash->{weight} + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
-    $hash->{weight} = $hash->{weight} + ($personaje->{appearance} * ((70 - $hash->{weight})/6));
-
-    $hash->{size} = [sort keys %{$self->tabla_biometrica_tallas}]->[int rand scalar sort keys %{$self->tabla_biometrica_tallas}];
-
+    
+    
+    my $rango;
+    my $c = 10;
     while (1) {
-      $hash->{height} = (int rand 70) + 140;
-      $hash->{height} -= 10 if $personaje->{sex} eq 'f';
-      my $next = 0;
-      my $rangos = $self->tabla_biometrica_tallas->{$hash->{size}}->[int rand scalar @{$self->tabla_biometrica_tallas->{$hash->{size}}}];
-      my $height_min = $rangos->{rango_altura}->[0];
-      my $height_max = $rangos->{rango_altura}->[$#{$rangos->{rango_altura}}];
-      if($height_max >= $hash->{height} && $height_min <= $hash->{height}) {
-        $hash->{weight} = $rangos->{rango_peso}->[int rand $#{$rangos->{rango_peso}}];
-        $next = 0;
-      } else {
-        $next = 1;  
+      $c--;
+      Gaiman->error("Se corta ciclo por recucion infinita") if !$c;
+      $hash->{size} = $sizes->[int rand scalar @{$sizes}] if !$personaje->{size};
+      my $rangos = $self->tabla_biometrica_tallas->{$hash->{size}};
+      my $ok = 0;
+      foreach my $r (@{$rangos}) {
+        my $height_min = $r->{rango_altura}->[0];
+        my $height_max = $r->{rango_altura}->[$#{$r->{rango_altura}}];
+        if($height_max >= $hash->{height} && $height_min <= $hash->{height}) {
+          $ok = 1;
+          $rango = $r;
+          last;
+        }
       }
-      next if $next;
+      next if !$ok;
       last;
     }
-
+    if(!$hash->{weight}) {
+      $hash->{weight} = $rango->{rango_peso}->[int rand $#{$rango->{rango_peso}}];
+    }
     $hash->{height} = $hash->{height} / 100;
-
     my $figura;
     my $imc = $hash->{weight} /($hash->{height} * $hash->{height});
-
     my $nombre;
     foreach my $rango (@{$self->tabla_biometrica_imc}) {
       if($imc > $rango->{rango}->[0] && $imc < $rango->{rango}->[$#{$rango->{rango}}]) {
         $nombre = $rango->{nombre};
         $figura = $rango->{figuras}->[int rand scalar @{$rango->{figuras}}];
-        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $personaje->{appearance}) * (int rand 10));
-        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $personaje->{appearance}) * (int rand 10));
-        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $personaje->{appearance}) * (int rand 10));
+        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $personaje->{appearance}) * (int rand 2));
+        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $personaje->{appearance}) * (int rand 2));
+        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $personaje->{appearance}) * (int rand 2));
       } 
     }
     $hash->{weight} = int $hash->{weight};
     $hash->{height} = sprintf "%.2f", $hash->{height};
-    print Dumper $hash;
+
+    Gaiman->logger->debug('Se tiene que definir la description del cuerpo: ', encode_json($hash));
+
     return $hash;    
   }
 

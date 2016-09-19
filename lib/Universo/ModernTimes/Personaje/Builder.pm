@@ -47,6 +47,7 @@ our $actual;
     $self->preparar('background', 7);
     $self->preparar('attribute', [10,8,6]);
     $self->preparar('ability', [13,9,5]);
+    $self->preparar('body');
     $self->preparar('description');
     $self->asignar;
     $self->crear_eventos;
@@ -87,7 +88,10 @@ our $actual;
     my $self = shift;
     my $atributos = shift;
     my $sum = 0;
-    my $keys = $self->atributos_nombres($atributos);
+    my $keys = [];
+    foreach my $atributo (@$atributos) {
+      push @$keys, $atributo->nombre if $atributo->isa('ModernTimes::Atributo::Tipo::Puntos');
+    }
     map {$sum += $self->estructura->{$_}} @$keys;
     return $sum;
   }
@@ -221,7 +225,7 @@ our $actual;
     if($puntos) {
       while (1) {
         $c--;
-        Gaiman->error("Se corta ciclo por recucion infinita") if !$c;
+        Gaiman->error("Se corta ciclo por recucion infinita para $key") if !$c;
         last if !$puntos;
         my $atributo = $atributos->[int rand scalar @$atributos];
         my $key = $atributo->nombre;
@@ -250,33 +254,7 @@ our $actual;
     my $valor = $valor_parametro;
     my $valor_random;
     my $atributo = Universo->actual->atributo_tipo($key);
-    if (exists $self->argumentos->{$key}){
-      if(ref $self->argumentos->{$key} eq 'ARRAY') {
-        $valor = $self->argumentos->{$key}->[int rand scalar @{$self->argumentos->{$key}}];
-      } else {
-        $valor = $self->argumentos->{$key};
-      }
-    }
-    if ($self->personaje->$key) {
-      if ($self->personaje->$key ne 'NONAME') {
-        $valor = $self->personaje->$key;
-      }
-    }
-    if (not defined $valor) {
-      $valor_random = $atributo->alguno($self->estructura);
-      $valor = $valor_random
-    }
-    if(!$atributo->validar($valor)) {
-      Gaiman->warn("No es valido el valor $valor para el atributo $key");
-      $valor = undef;
-    }
-    Gaiman->logger->trace("preparar_atributo $key: ".encode_json({
-      parametro => $valor_parametro,
-      argumentos => $self->argumentos->{$key},
-      personaje => $self->personaje->$key,
-      random => $valor_random,
-      final => $valor,
-    }));
+    $valor = $atributo->preparar_para_build($self->estructura, $self->argumentos, $self->personaje, $valor_parametro);
     $self->estructura->{$key} = $valor if defined $valor;
     return;
   }

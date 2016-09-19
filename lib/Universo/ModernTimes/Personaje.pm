@@ -28,9 +28,9 @@ sub description_texto {
 			'Tiene', $self->age, 'años'
 		),
 		Gaiman->oracion($self,
-			'Mide', $self->height,
-			', pesa', $self->weight, 'kg',
-			' y sus medidas son', $self->bust.'-'.$self->waist.'-'.$self->hip,
+			'Mide', $self->body->{height},
+			', pesa', $self->body->{weight}, 'kg',
+			' y sus medidas son', $self->body->{bust}.'-'.$self->body->{waist}.'-'.$self->body->{hip},
 		)
 	);
 	return $str;

@@ -29,17 +29,19 @@ use Data::Dumper;
   	my $self = shift;
     my $key = shift;
     my $valor = shift;
+    $self->{_atributos}->{$key} = {
+      tipo => undef,
+      valor => undef
+    } if !exists $self->{_atributos}->{$key};
+    my $tipo = Universo->actual->atributo_tipo($key);
+    $self->{_atributos}->{$key}->{tipo} = $tipo if !$self->{_atributos}->{$key}->{tipo};
     if(defined $valor) {
-      $self->{_atributos}->{$key} = {
-        tipo => undef,
-        valor => undef
-      } if !exists $self->{_atributos}->{$key};
-      $self->{_atributos}->{$key}->{valor} = $valor;
+      $self->{_atributos}->{$key}->{valor} = $tipo->valor($self, $valor);
       Gaiman->logger->trace("Se asigno ",$self->name,": ",encode_json({$key => $valor}));
     }
-    $self->{_atributos}->{$key}->{tipo} = Universo->actual->atributo_tipo($key) if !$self->{_atributos}->{$key}->{tipo};
+    $valor = $self->{_atributos}->{$key}->{valor};
     return 'NONAME' if $key eq 'name' &&  !$self->{_atributos}->{$key}->{valor};
-    return $self->{_atributos}->{$key}->{valor};
+    return $tipo->valor($self, $valor);
   }
 
   sub atributos {

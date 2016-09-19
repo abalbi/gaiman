@@ -2,6 +2,7 @@ package ModernTimes::Atributo::Tipo;
 use strict;
 use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno _crear_eventos);
 use Data::Dumper;
+use JSON;
 
 sub new {
 	my $self = shift;
@@ -71,13 +72,6 @@ sub validar {
 	return 0;
 }
 
-sub valor {
-  my $self = shift;
-  my $personaje = shift;
-  my $valor = shift;
-  return $valor;
-}
-
 sub alguno {
   my $self = shift;
   my $contexto = shift;
@@ -103,5 +97,57 @@ sub crear_eventos {
     return $eventos;
   }
   return undef;    
+}
+
+sub valor {
+  my $self = shift;
+  my $personaje = shift;
+  my $valor = shift;
+  return $valor;
+}
+
+sub es_vacio {
+  my $self = shift;
+  my $valor = shift;
+  return not defined $valor;  
+}
+
+sub preparar_para_build {
+  my $self = shift;
+  my $estructura = shift;
+  my $argumentos = shift;
+  my $personaje = shift;
+  my $parametro = shift;
+  my $valor_random;
+  my $valor;
+  my $key = $self->nombre;
+  $valor = $parametro;
+  if (exists $argumentos->{$key}){
+    if(ref $argumentos->{$key} eq 'ARRAY') {
+      $valor = $argumentos->{$key}->[int rand scalar @{$argumentos->{$key}}];
+    } else {
+      $valor = $argumentos->{$key};
+    }
+  }
+  if ($personaje->$key) {
+    if ($personaje->$key ne 'NONAME') {
+      $valor = $personaje->$key;
+    }
+  }
+  if ($self->es_vacio($valor)) {
+    $valor_random = $self->alguno($estructura);
+    $valor = $valor_random
+  }
+  if(!$self->validar($valor)) {
+    Gaiman->warn("No es valido el valor $valor para el atributo ", $self->nombre);
+    $valor = undef;
+  }
+  Gaiman->logger->trace("preparar_atributo ",$self->nombre,": ", $valor ? $valor : 'NULO', ' -> ',encode_json({
+    parametro => $parametro,
+    argumentos => $argumentos->{$key},
+    personaje => $personaje->$key,
+    random => $valor_random,
+  }));
+  return $valor;
 }
 1;

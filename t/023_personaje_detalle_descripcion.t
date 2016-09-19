@@ -19,6 +19,7 @@ my $builder = Universo->actual->builder_personaje;
 	$builder->build;
 	#Entonces el personaje tendra en el detalle descripcion
 	like $personaje->detalle, 
-		qr/\w+ es \w+ de pelo \w+ y \w+. Sus ojos son \w+. Tiene \d\d años. Mide \d.\d\d, pesa \d\d kg y sus medidas son \d\d\d*-\d\d\d*-\d\d\d*./,
+#		qr/[\w|ñ]+ es \w+ de pelo \w+ y \w+. Sus ojos son \w+. Tiene \d\d años. Mide \d.\d\d, pesa \d\d kg y sus medidas son \d\d\d*-\d\d\d*-\d\d\d*./,
+		qr/[\w|ñ]+ es [\w|ñ]+ de pelo \w+ y \w+. Sus ojos son \w+. Tiene \d\d años. Mide \d.\d\d, pesa \d\d kg y sus medidas son \d\d\d*-\d\d\d*-\d\d\d*./,
 		'el personaje tendra en el detalle descripcion';
 }
