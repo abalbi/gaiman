@@ -17,6 +17,7 @@ our $actual;
     my $self = shift;
   	my $valor = shift;
   	$self->{_personaje} = $valor if defined $valor;
+    $self->{_personaje} = ModernTimes::Personaje->new if !$self->{_personaje};
   	return $self->{_personaje};
   }
 
@@ -32,6 +33,12 @@ our $actual;
   	my $valor = shift;
   	$self->{_argumentos} = $valor if defined $valor;
   	return $self->{_argumentos};
+  }
+
+  sub clean {
+    my $self = shift;
+    $self->{_personaje} = undef;
+    return $self;    
   }
 
   sub build {
@@ -51,7 +58,8 @@ our $actual;
     $self->preparar('description');
     $self->asignar;
     $self->crear_eventos;
-    return $self;  	
+    Entorno->actual->agregar($self->personaje);
+    return $self;
   }
 
   sub crear_eventos {
@@ -249,7 +257,7 @@ our $actual;
 
   sub preparar_atributo {
     my $self = shift;
-  	my $key = shift;
+    my $key = shift;
     my $valor_parametro = shift;
     my $valor = $valor_parametro;
     my $valor_random;

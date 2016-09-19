@@ -39,6 +39,23 @@ sub init {
       )
     }
   });
+  push @{$self->evento_tipos}, ModernTimes::Evento::Tipo->new({
+    nombre => 'BESAR',
+    roles => [qw(besador besado)],
+    description => sub {
+      my $evento_tipo = shift;
+      my $evento = shift;
+      my $str = Gaiman->parrafo(
+        Gaiman->oracion($evento->besador, 
+          $evento->besador->name,
+          'besa a',
+          $evento->besado->name,
+        )
+      )
+    }
+  });
+
+
 
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'sex',
@@ -80,7 +97,7 @@ sub init {
       my $personaje = shift;
       my $eventos = [];
       my $builder_evento = Universo->actual->builder_evento;
-      $builder_evento->build({sujeto => $personaje, epoch => $personaje->date_birth});
+      $builder_evento->build({sujeto => $personaje, tipo => 'NACER', epoch => $personaje->date_birth});
       push @{$eventos}, $builder_evento->evento;
       return $eventos;      
     }

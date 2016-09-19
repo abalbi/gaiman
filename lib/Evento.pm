@@ -1,7 +1,7 @@
 package Evento;
 use strict;
 use JSON;
-use fields qw(_tipo _roles _epoch);
+use fields qw(_tipo _roles _epoch _name);
 our $AUTOLOAD;
 use Data::Dumper;
 	sub new {
@@ -22,6 +22,14 @@ use Data::Dumper;
     $self->{_tipo} = $tipo if defined $tipo;
     return $self->{_tipo};
   }
+
+  sub name {
+    my $self = shift;
+    my $name = shift;
+    $self->{_name} = $name if defined $name;
+    return $self->{_name};
+  }
+
 
   sub epoch {
     my $self = shift;

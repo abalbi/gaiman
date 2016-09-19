@@ -1,6 +1,6 @@
 package ModernTimes::Evento::Tipo;
 use strict;
-use fields qw(_nombre _roles _description);
+use fields qw(_nombre _roles _description _epoch );
 use Data::Dumper;
 
 
@@ -10,6 +10,7 @@ sub new {
 	$self = fields::new($self);
 	$self->{_nombre} = $args->{nombre};
   $self->{_roles} = $args->{roles};
+  $self->{_epoch} = $args->{epoch};
   $self->{_description} = $args->{description};
 	Gaiman->logger->trace("Se instancio ",ref $self);
 	return $self;
@@ -35,10 +36,12 @@ sub roles {
 sub description {
   my $self = shift;
   my $contexto = shift;
+  my $str;
   if(defined $contexto) {
-    return &{$self->{_description}}($self,$contexto);
+    $str = &{$self->{_description}}($self,$contexto);
   }
-  return $self->{_description};
+  $str = $contexto->epoch.': '.$str;
+  return $str;
 }
 
 1;

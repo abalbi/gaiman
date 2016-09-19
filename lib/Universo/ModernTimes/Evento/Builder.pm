@@ -20,15 +20,25 @@ our $actual;
   	return $self->{_evento};
   }
 
+  sub rndStr{ join'', @_[ map{ rand @_ } 1 .. shift ] }
+
   sub build {
     my $self = shift;
     my $args = shift;
     $self->evento(ModernTimes::Evento->new) if !$self->evento;
-    my $tipo = Universo->actual->evento_tipo('NACER');
+    my $tipo = $args->{tipo};
+    my $tipo = Universo->actual->evento_tipo($tipo);
+    print "asdfasdfadfdasdfasfasfdasdfdasdf";
+    $self->evento->name(rndStr 32, 'a'..'z','A'..'Z', 0..9);
     $self->evento->tipo($tipo);
-    $self->evento->epoch($args->{epoch});
+    $self->evento->epoch($args->{epoch}) if $args->{epoch};
+    $self->evento->epoch(Universo->actual->base_date->epoch) if !$args->{epoch};
     foreach my $rol (@{$tipo->roles}) {
-      $self->evento->$rol($args->{$rol});
+      my $personaje = $args->{$rol};
+      $personaje = Entorno->traer_o_crear($args->{$rol});
+      $self->evento->$rol($personaje);
+      push @{$personaje->eventos}, $self->evento;
+      Entorno->actual->agregar($self->evento);
     }
     return $self;  	
   }
