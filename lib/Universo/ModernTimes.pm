@@ -150,10 +150,11 @@ sub init {
     nombre => 'size',
     categoria => 'description',
     subcategoria => 'body',
+    validos => [qw(XS S M L XL)], 
     alguno => sub {
       my $atributo_tipo = shift;
       my $personaje = shift;
-      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo};
+      my $medida = $self->crear_biometria($personaje)->{$atributo_tipo->nombre};
       return $medida;
     }
   });
