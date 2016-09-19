@@ -51,7 +51,7 @@ sub detalle {
   $self->detalle_categoria($parrafos, 'attribute');
   $self->detalle_categoria($parrafos, 'ability');
   $self->detalle_categoria($parrafos, 'advantage');
-
+  push @$parrafos, $self->description_texto;
   $str = Gaiman->parrafos(@$parrafos);
   return $str;
 }

@@ -335,6 +335,7 @@ sub init {
 
     while (1) {
       $hash->{height} = (int rand 70) + 140;
+      $hash->{height} -= 10 if $personaje->{sex} eq 'f';
       my $next = 0;
       my $rangos = $self->tabla_biometrica_tallas->{$hash->{size}}->[int rand scalar @{$self->tabla_biometrica_tallas->{$hash->{size}}}];
       my $height_min = $rangos->{rango_altura}->[0];

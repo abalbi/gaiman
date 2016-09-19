@@ -31,7 +31,8 @@ skill: animal_ken: \d; crafts: \d; drive: \d; etiquette: \d; firearms: \d; melee
 knowledge: academics: \d; bureaucracy: \d; computer: \d; finance: \d; investigation: \d; law: \d; linguistics: \d; medicine: \d; occult: \d; politics: \d; research: \d; science: \d
 advantage
 virtues: conviction: \d; instinct: \d; courage: \d
-background: allies: \d; contacts: \d; fame: \d; influence: \d; mentor: \d; resources: \d$/,
+background: allies: \d; contacts: \d; fame: \d; influence: \d; mentor: \d; resources: \d
+\w+ es [\w|ñ]+ de pelo \w+ y \w+. Sus ojos son \w+. Tiene \d\d años. Mide \d.\d\d, pesa \d\d kg y sus medidas son \d\d\d*-\d\d\d*-\d\d\d*./,
     'puedo obtener un detalle del personaje';
 }
 
