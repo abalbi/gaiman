@@ -154,7 +154,7 @@ sub init {
       my $atributo_tipo = shift;
       my $personaje = shift;
       my $medida = $self->crear_biometria($personaje)->{$atributo_tipo};
-      return $medida;      
+      return $medida;
     }
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
@@ -317,39 +317,30 @@ sub init {
   sub crear_biometria {
     my $self = shift;
     my $personaje = shift;
-    my $height = $personaje->{height} ? $personaje->{height} : 0;
-    my $weight = $personaje->{weight} ? $personaje->{weight} : 0;
-    my $bust = $personaje->{bust} ? $personaje->{bust} : 0;
-    my $waist = $personaje->{waist} ? $personaje->{waist} : 0;
-    my $hip = $personaje->{hip} ? $personaje->{hip} : 0;
-    my $size = $personaje->{size} ? $personaje->{size} : 0;
-    my $peso;
-    my $medidas;
+    my $hash = {};
+    $hash->{height} = $personaje->{height} ? $personaje->{height} : 0;
+    $hash->{weight} = $personaje->{weight} ? $personaje->{weight} : 0;
+    $hash->{bust} = $personaje->{bust} ? $personaje->{bust} : 0;
+    $hash->{waist} = $personaje->{waist} ? $personaje->{waist} : 0;
+    $hash->{hip} = $personaje->{hip} ? $personaje->{hip} : 0;
+    $hash->{size} = $personaje->{size} ? $personaje->{size} : 0;
+    return $hash if $hash->{height} && $hash->{weight} && $hash->{bust} && $hash->{waist} && $hash->{hip};
 
-    my $hash = {
-      height => $height,
-      weight => $weight,
-      size => $size,
-      bust => $bust,
-      waist => $waist,
-      hip => $hip,
-    };
-    return $hash if $height && $weight && $bust && $waist && $hip;
-    $height = $height + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
-    $height = $height + ($personaje->{appearance} * ((170 - $height)/6));
-    $weight = $weight + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
-    $weight = $weight + ($personaje->{appearance} * ((70 - $weight)/6));
+    $hash->{height} = $hash->{height} + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
+    $hash->{height} = $hash->{height} + ($personaje->{appearance} * ((170 - $hash->{height})/6));
+    $hash->{weight} = $hash->{weight} + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
+    $hash->{weight} = $hash->{weight} + ($personaje->{appearance} * ((70 - $hash->{weight})/6));
 
-    my $size = [sort keys %{$self->tabla_biometrica_tallas}]->[int rand scalar sort keys %{$self->tabla_biometrica_tallas}];
+    $hash->{size} = [sort keys %{$self->tabla_biometrica_tallas}]->[int rand scalar sort keys %{$self->tabla_biometrica_tallas}];
 
     while (1) {
-      $height = (int rand 70) + 140;
+      $hash->{height} = (int rand 70) + 140;
       my $next = 0;
-      my $rangos = $self->tabla_biometrica_tallas->{$size}->[int rand scalar @{$self->tabla_biometrica_tallas->{$size}}];
+      my $rangos = $self->tabla_biometrica_tallas->{$hash->{size}}->[int rand scalar @{$self->tabla_biometrica_tallas->{$hash->{size}}}];
       my $height_min = $rangos->{rango_altura}->[0];
       my $height_max = $rangos->{rango_altura}->[$#{$rangos->{rango_altura}}];
-      if($height_max >= $height && $height_min <= $height) {
-        $weight = $rangos->{rango_peso}->[int rand $#{$rangos->{rango_peso}}];
+      if($height_max >= $hash->{height} && $height_min <= $hash->{height}) {
+        $hash->{weight} = $rangos->{rango_peso}->[int rand $#{$rangos->{rango_peso}}];
         $next = 0;
       } else {
         $next = 1;  
@@ -358,36 +349,24 @@ sub init {
       last;
     }
 
-
-
-    $height = $height / 100;
+    $hash->{height} = $hash->{height} / 100;
 
     my $figura;
-    my $imc = $weight /($height * $height);
+    my $imc = $hash->{weight} /($hash->{height} * $hash->{height});
 
     my $nombre;
     foreach my $rango (@{$self->tabla_biometrica_imc}) {
       if($imc > $rango->{rango}->[0] && $imc < $rango->{rango}->[$#{$rango->{rango}}]) {
         $nombre = $rango->{nombre};
         $figura = $rango->{figuras}->[int rand scalar @{$rango->{figuras}}];
-        $medidas = [
-          $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $personaje->{appearance}) * (int rand 10)),
-          $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $personaje->{appearance}) * (int rand 10)),
-          $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $personaje->{appearance}) * (int rand 10)),
-        ];
+        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $personaje->{appearance}) * (int rand 10));
+        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $personaje->{appearance}) * (int rand 10));
+        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $personaje->{appearance}) * (int rand 10));
       } 
     }
-    $weight = int $weight;
-    $height = sprintf "%.2f", $height;
-
-    $hash = {
-      height => $height,
-      weight => $weight,
-      size => $size,
-      bust => $medidas->[0],
-      waist => $medidas->[1],
-      hip => $medidas->[2],
-    };
+    $hash->{weight} = int $hash->{weight};
+    $hash->{height} = sprintf "%.2f", $hash->{height};
+    print Dumper $hash;
     return $hash;    
   }
 
