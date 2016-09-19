@@ -57,6 +57,11 @@ use Data::Dumper;
     return $self->{_roles}->{$key};
   }
 
+  sub roles {
+    my $self = shift;
+    return $self->{_roles};
+  }
+
   sub description {
     my $self = shift;
     return $self->tipo->description($self);

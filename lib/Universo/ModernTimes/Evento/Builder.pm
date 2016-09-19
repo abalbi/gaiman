@@ -28,7 +28,6 @@ our $actual;
     $self->evento(ModernTimes::Evento->new) if !$self->evento;
     my $tipo = $args->{tipo};
     my $tipo = Universo->actual->evento_tipo($tipo);
-    print "asdfasdfadfdasdfasfasfdasdfdasdf";
     $self->evento->name(rndStr 32, 'a'..'z','A'..'Z', 0..9);
     $self->evento->tipo($tipo);
     $self->evento->epoch($args->{epoch}) if $args->{epoch};

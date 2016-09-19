@@ -4,6 +4,7 @@ use Gaiman;
 use Data::Dumper;
 use Getopt::Complete (
       'build'		=> [qw(personaje evento)],
+      'tipo'		=> [qw(BESAR)],
       'log'			=> [qw(OFF FATAL ERROR WARN INFO DEBUG TRACE ALL)],
       'random!'		=> undef,
       'srand'		=> undef,
@@ -13,6 +14,7 @@ use Getopt::Complete (
 
 my %arg;
 $arg{build} = $ARGS{build};
+$arg{tipo} = $ARGS{tipo};
 $arg{random}  = $ARGS{random};
 $arg{srand}  = $ARGS{srand};
 $arg{json}    = $ARGS{json};

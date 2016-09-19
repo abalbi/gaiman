@@ -103,6 +103,7 @@ our $instancia;
     my $srand = 3;
     my $build = $arg->{build};
     delete $arg->{build};
+    my $tipo = $arg->{tipo};
     my $random = $arg->{random};
     delete $arg->{random};
     my $json = $arg->{json};
@@ -127,6 +128,15 @@ our $instancia;
       $str .= $personaje->json."\n" if $json;
       $str .= $personaje->detalle."\n" if $detalle;
       $str .= $personaje->description_texto if $texto;
+    }
+    if($build eq 'evento' || $build eq 'eve') {
+      ModernTimes->new;
+      my $builder = Universo->actual->builder_evento;
+      $builder->build($arg);
+      foreach my $key (keys %{$builder->evento->roles}) {
+        print Dumper $builder->evento->rol($key)->description_texto;
+      }
+      $str .= $builder->evento->description;
     }
     return $str;
   }

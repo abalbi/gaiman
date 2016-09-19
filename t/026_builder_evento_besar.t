@@ -39,5 +39,3 @@ my $builder_personaje = Universo->actual->builder_personaje;
 	#Entonces se autogeneran personajes segun los parametros
 	like $builder_evento->evento->description, qr/Mora besa a \w+/, 'se autogeneran personajes' ;
 }
-$Data::Dumper::Maxdepth = 3;
-print Dumper(Entorno->actual);
