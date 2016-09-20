@@ -261,7 +261,7 @@ our $actual;
     my $valor = $valor_parametro;
     my $valor_random;
     my $atributo = Universo->actual->atributo_tipo($key);
-    $valor = $atributo->preparar_para_build($self->estructura, $self->argumentos, $self->personaje, $valor_parametro);
+    $valor = $atributo->preparar_para_build($self, $valor_parametro);
     $self->estructura->{$key} = $valor if defined $valor;
     return;
   }

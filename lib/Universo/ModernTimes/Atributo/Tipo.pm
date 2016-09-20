@@ -114,26 +114,28 @@ sub es_vacio {
 
 sub preparar_para_build {
   my $self = shift;
-  my $estructura = shift;
-  my $argumentos = shift;
-  my $personaje = shift;
+  my $builder = shift;
   my $parametro = shift;
+  my $estructura = $builder->estructura;
+  my $argumentos = $builder->argumentos;
+  my $personaje = $builder->personaje;
   my $valor_random;
   my $valor;
-  my $key = $self->nombre;
+  my $nombre = $self->nombre;
   $valor = $parametro;
-  if (exists $argumentos->{$key}){
-    if(ref $argumentos->{$key} eq 'ARRAY') {
-      $valor = $argumentos->{$key}->[int rand scalar @{$argumentos->{$key}}];
+  if (exists $argumentos->{$nombre}){
+    if(ref $argumentos->{$nombre} eq 'ARRAY') {
+      $valor = $argumentos->{$nombre}->[int rand scalar @{$argumentos->{$nombre}}];
     } else {
-      $valor = $argumentos->{$key};
+      $valor = $argumentos->{$nombre};
     }
   }
-  if ($personaje->$key) {
-    if ($personaje->$key ne 'NONAME') {
-      $valor = $personaje->$key;
+  if ($personaje->$nombre) {
+    if ($personaje->$nombre ne 'NONAME') {
+      $valor = $personaje->$nombre;
     }
   }
+  $builder->estructura->{$nombre} = $valor;
   if ($self->es_vacio($valor)) {
     $valor_random = $self->alguno($estructura);
     $valor = $valor_random
@@ -142,10 +144,11 @@ sub preparar_para_build {
     Gaiman->warn("No es valido el valor $valor para el atributo ", $self->nombre);
     $valor = undef;
   }
+  $builder->estructura->{$nombre} = $valor;
   Gaiman->logger->trace("preparar_atributo ",$self->nombre,": ", $valor ? $valor : 'NULO', ' -> ',encode_json({
     parametro => $parametro,
-    argumentos => $argumentos->{$key},
-    personaje => $personaje->$key,
+    argumentos => $argumentos->{$nombre},
+    personaje => $personaje->$nombre,
     random => $valor_random,
   }));
   return $valor;

@@ -51,10 +51,11 @@ sub detalle {
 
 sub preparar_para_build {
   my $self = shift;
-  my $estructura = shift;
-  my $argumentos = shift;
-  my $personaje = shift;
+  my $builder = shift;
   my $parametro = shift;
+  my $estructura = $builder->estructura;
+  my $argumentos = $builder->argumentos;
+  my $personaje = $builder->personaje;
   my $valor_random;
   my $valor = {};
   my $nombre = $self->nombre;
@@ -63,13 +64,6 @@ sub preparar_para_build {
       $valor->{$key} = $argumentos->{$nombre}->{$key};
     }
   }
-  Gaiman->logger->debug("preparar_atributo ",$self->nombre,": ",encode_json({
-    parametro => $parametro,
-    argumentos => $argumentos->{$nombre},
-    personaje => $personaje->$nombre,
-    random => $valor_random,
-    final => $valor,
-  }));
   if ($personaje->$nombre) {
     if ($personaje->$nombre ne 'NONAME') {
       foreach my $key (sort keys %{$personaje->$nombre}) {
@@ -77,8 +71,16 @@ sub preparar_para_build {
       }
     }
   }
+  $builder->estructura->{$nombre} = $valor;
+  Gaiman->logger->debug("preparar_atributo ",$self->nombre,": ",encode_json({
+    parametro => $parametro,
+    argumentos => $argumentos->{$nombre},
+    personaje => $personaje->$nombre,
+    random => $valor_random,
+    final => $valor,
+  }));
   if ($self->es_vacio($valor)) {
-    $valor_random = $self->alguno($valor);
+    $valor_random = $self->alguno($builder, $valor);
     $valor = $valor_random
   }
   if(!$self->validar($valor)) {

@@ -146,8 +146,9 @@ sub init {
     requeridos => [qw(height weight size bust waist hip)],
     alguno => sub {
       my $atributo_tipo = shift;
-      my $body = shift;
-      return $self->crear_biometria($body);
+      my $builder = shift;
+      my $valor = shift;
+      return $self->crear_biometria($builder, $valor);
     }
   });
   push @{$self->atributo_tipos}, map {ModernTimes::Atributo::Tipo::Puntos->new({
@@ -236,27 +237,27 @@ sub init {
   sub tabla_biometrica_tallas {
     return {
       XS => [
-        { rango_altura => [140..155], rango_peso => [40..50]}, 
+        { rango_altura => [140..155], rango_peso => [40..50], appearance => [1..2]}, 
       ],
       S => [
-        { rango_altura => [140..155], rango_peso => [50..60]}, 
-        { rango_altura => [155..170], rango_peso => [40..60]}, 
+        { rango_altura => [140..155], rango_peso => [50..60], appearance => [1..3]}, 
+        { rango_altura => [155..170], rango_peso => [40..60], appearance => [1..4]}, 
       ],
       M => [
-        { rango_altura => [140..155], rango_peso => [60..70]}, 
-        { rango_altura => [155..170], rango_peso => [60..80]}, 
-        { rango_altura => [170..185], rango_peso => [50..80]}, 
-        { rango_altura => [185..200], rango_peso => [50..70]}, 
+        { rango_altura => [140..155], rango_peso => [60..70], appearance => [2..4]}, 
+        { rango_altura => [155..170], rango_peso => [60..80], appearance => [2..5]}, 
+        { rango_altura => [170..185], rango_peso => [50..80], appearance => [2..5]}, 
+        { rango_altura => [185..200], rango_peso => [50..70], appearance => [2..5]}, 
       ],
       L => [
-        { rango_altura => [170..185], rango_peso => [80..90]}, 
-        { rango_altura => [185..200], rango_peso => [70..100]}, 
-        { rango_altura => [200..210], rango_peso => [70..100]}, 
+        { rango_altura => [170..185], rango_peso => [80..90], appearance => [1..5]}, 
+        { rango_altura => [185..200], rango_peso => [70..100], appearance => [1..5]}, 
+        { rango_altura => [200..210], rango_peso => [70..100], appearance => [1..5]}, 
       ],
       XL => [
-        { rango_altura => [170..185], rango_peso => [90..110]}, 
-        { rango_altura => [185..200], rango_peso => [100..110]}, 
-        { rango_altura => [200..210], rango_peso => [100..110]}, 
+        { rango_altura => [170..185], rango_peso => [90..110], appearance => [1..3]}, 
+        { rango_altura => [185..200], rango_peso => [100..110], appearance => [1..3]}, 
+        { rango_altura => [200..210], rango_peso => [100..110], appearance => [1..2]}, 
       ]
     }
   }
@@ -286,73 +287,43 @@ sub init {
 
   sub crear_biometria {
     my $self = shift;
-    my $personaje = shift;
+    my $builder = shift;
+    my $valor = shift;
+    my $appearance = $builder->estructura->{appearance};
+    my $size = $builder->estructura->{body}->{size};
     my $hash = {};
-    $hash->{height} = $personaje->{height}  ? $personaje->{height}  : 0;
-    $hash->{weight} = $personaje->{weight}  ? $personaje->{weight}  : 0;
-    $hash->{bust}   = $personaje->{bust}    ? $personaje->{bust}    : 0;
-    $hash->{waist}  = $personaje->{waist}   ? $personaje->{waist}   : 0;
-    $hash->{hip}    = $personaje->{hip}     ? $personaje->{hip}     : 0;
-    $hash->{size}   = $personaje->{size}    ? $personaje->{size}    : 0;
-    Gaiman->logger->debug('Se tiene que definir la description del cuerpo: ', encode_json($hash));
-    return $hash if $hash->{height} && $hash->{weight} && $hash->{bust} && $hash->{waist} && $hash->{hip};
-    $hash->{height} = $self->crear_biometria_altura($personaje) if !$personaje->{height};
-    $hash->{height} = $hash->{height} * 100 if $hash->{height} < 100;
-    $hash->{height} = $hash->{height} >= 140 ? $hash->{height} : 140;
-    $hash->{height} = $hash->{height} <= 210 ? $hash->{height} : 210;
- 
     my $tbl = $self->tabla_biometrica_tallas;
-    my $sizes = [grep {
-      my $talla = $_;
-      my $boo = 0;
-      foreach my $rangos (@{$tbl->{$_}}) {
-        $boo = 1 if scalar grep {$_ == $hash->{height}} @{$rangos->{rango_altura}};
-      } 
-      $boo;
-    } keys %$tbl] if $hash->{height};
-
-    my $rango;
-    my $c = 10;
-    while (1) {
-      $c--;
-      Gaiman->error("Se corta ciclo por recucion infinita") if !$c;
-      $hash->{size} = $sizes->[int rand scalar @{$sizes}] if !$personaje->{size};
-      my $rangos = $self->tabla_biometrica_tallas->{$hash->{size}};
-      my $ok = 0;
-      foreach my $r (@{$rangos}) {
-        my $height_min = $r->{rango_altura}->[0];
-        my $height_max = $r->{rango_altura}->[$#{$r->{rango_altura}}];
-        if($height_max >= $hash->{height} && $height_min <= $hash->{height}) {
-          $ok = 1;
-          $rango = $r;
-          last;
+    my $sizes = [];
+    if(!$size) {
+      foreach my $key (sort keys %{$tbl}) {
+        foreach my $rangos (@{$tbl->{$key}}) {
+          push @$sizes, $key if scalar grep {$_ == $appearance} @{$rangos->{appearance}};
         }
       }
-      next if !$ok;
-      last;
+      $size = $sizes->[int rand scalar @{$sizes}];
     }
-    if(!$hash->{weight}) {
-      $hash->{weight} = $rango->{rango_peso}->[int rand $#{$rango->{rango_peso}}];
-    }
-    $hash->{height} = $hash->{height} / 100;
+    $hash->{size} = $size;
+    my $size_rango = $tbl->{$size}->[int rand scalar @{$tbl->{$size}}];
+    my $height = $size_rango->{rango_altura}->[int rand scalar @{$size_rango->{rango_altura}}];
+    $hash->{height} = $height / 100;
+    my $weight = $size_rango->{rango_peso}->[int rand scalar @{$size_rango->{rango_peso}}];
+    $hash->{weight} = $weight;
+
+    my $imc = $weight /($height * $height);
     my $figura;
-    my $imc = $hash->{weight} /($hash->{height} * $hash->{height});
-    my $nombre;
-    foreach my $rango (@{$self->tabla_biometrica_imc}) {
-      if($imc > $rango->{rango}->[0] && $imc < $rango->{rango}->[$#{$rango->{rango}}]) {
-        $nombre = $rango->{nombre};
-        $figura = $rango->{figuras}->[int rand scalar @{$rango->{figuras}}];
-        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $personaje->{appearance}) * (int rand 2));
-        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $personaje->{appearance}) * (int rand 2));
-        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $personaje->{appearance}) * (int rand 2));
+    foreach my $imc_rango (@{$self->tabla_biometrica_imc}) {
+      if($imc > $imc_rango->{rango}->[0] && $imc < $imc_rango->{rango}->[$#{$imc_rango->{rango}}]) {
+        my $nombre = $imc_rango->{nombre};
+        $figura = $imc_rango->{figuras}->[int rand scalar @{$imc_rango->{figuras}}];
+        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $appearance) * (int rand 2));
+        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $appearance) * (int rand 2));
+        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $appearance) * (int rand 2));
       } 
     }
-    $hash->{weight} = int $hash->{weight};
-    $hash->{height} = sprintf "%.2f", $hash->{height};
 
-    Gaiman->logger->debug('Se tiene que definir la description del cuerpo: ', encode_json($hash));
 
-    return $hash;    
+    return $hash;
   }
+
 
 1;
