@@ -54,9 +54,6 @@ sub init {
       )
     }
   });
-
-
-
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
     nombre => 'sex',
     validos => [qw(f m)],
@@ -314,8 +311,6 @@ sub init {
       $boo;
     } keys %$tbl] if $hash->{height};
 
-    
-    
     my $rango;
     my $c = 10;
     while (1) {

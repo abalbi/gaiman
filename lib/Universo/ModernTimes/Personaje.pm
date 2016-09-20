@@ -52,8 +52,21 @@ sub detalle {
   $self->detalle_categoria($parrafos, 'ability');
   $self->detalle_categoria($parrafos, 'advantage');
   push @$parrafos, $self->description_texto;
+  push @$parrafos, colored('edad: ', 'BOLD').$self->age;
+  push @$parrafos, colored("cuerpo:\n", 'BOLD') . $self->body_detalle;
+	push @$parrafos, colored("biografia:", 'BOLD');
+  push @$parrafos, $self->detalle_biografia;
   $str = Gaiman->parrafos(@$parrafos);
   return $str;
+}
+
+sub detalle_biografia {
+	my $self = shift; 
+  my $parrafos = [];
+  foreach my $evento (@{$self->eventos}) {
+  	push @$parrafos, $evento->description;
+  }
+  return @$parrafos;
 }
 
 sub detalle_categoria {
@@ -79,6 +92,5 @@ sub detalle_categoria {
       $hash->{$atributo->subcategoria} = undef;
     }
   }
-
 }
 1;

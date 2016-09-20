@@ -4,6 +4,7 @@ use base qw(ModernTimes::Atributo::Tipo);
 use fields qw(_requeridos);
 use Data::Dumper;
 use JSON;
+use Term::ANSIColor;
 
 sub new {
 	my $self = shift;
@@ -36,6 +37,16 @@ sub es_vacio {
 sub requeridos {
   my $self = shift;
   return $self->{_requeridos};
+}
+
+sub detalle {
+  my $self = shift;
+  my $valor = shift;
+  my $str = [];
+  foreach my $key (keys %$valor) {
+    push @$str, sprintf("%s: %s", colored($key, 'BOLD'), $valor->{$key});
+  }
+  return join "; ", @$str;
 }
 
 sub preparar_para_build {

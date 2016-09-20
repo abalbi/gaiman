@@ -1,5 +1,5 @@
 package Entorno;
-use fields qw(_personajes _eventos);
+use fields qw(_elementos);
 use strict;
 use Data::Dumper;
 use JSON;
@@ -8,8 +8,7 @@ our $actual;
     my $self = shift;
     my $args = shift;
     $self = fields::new($self);
-    $self->{_personajes} = [];
-    $self->{_eventos} = [];
+    $self->{_elementos} = [];
     Gaiman->logger->info("Se instancio ",ref $self);
     return $self;
   }
@@ -24,21 +23,15 @@ our $actual;
     my $self = shift;
     $self = Entorno->actual if $self eq 'Entorno';
   	my $obj = shift;
-    if ($obj->isa('Personaje')) {
-      return 0 if $self->buscar($obj->name);
-      return push @{$self->personajes}, $obj if $obj->isa('Personaje');
-    } 
-    if ($obj->isa('Evento')) {
-      return 0 if $self->buscar($obj->name);
-      return push @{$self->eventos}, $obj if $obj->isa('Evento');
-    } 
+    return 0 if $self->buscar($obj->name);
+    return push @{$self->elementos}, $obj;
   }
 
   sub buscar {
     my $self = shift;
     my $key = shift;
     $self = Entorno->actual if $self eq 'Entorno';
-    my $objs = [grep {$_->es($key)} @{$self->personajes}];
+    my $objs = [grep {$_->es($key)} @{$self->elementos}];
     return $objs->[0] if scalar @{$objs} == 1;
     return undef if scalar @{$objs} == 0;
     return $objs;
@@ -65,12 +58,20 @@ our $actual;
 
   sub personajes {
     my $self = shift;
-    return $self->{_personajes};
+    my $array = [grep {$_->isa('Personaje')} @{$self->elementos}];
+    return $array;
   }
 
   sub eventos {
     my $self = shift;
-    return $self->{_eventos};
+    my $array = [grep {$_->isa('Evento')} @{$self->elementos}];
+    return $array;
   }
+
+  sub elementos {
+    my $self = shift;
+    return $self->{_elementos};
+  }
+
 
 1;

@@ -3,6 +3,7 @@ use lib 'lib';
 use Test::More qw(no_plan);;
 use Test::Exception;
 use Test::Output;
+use Test::Deep;
 use Data::Dumper;
 
 #Dado el uso de Gaiman
@@ -17,7 +18,13 @@ my $builder_personaje = Universo->actual->builder_personaje;
 	#Cuando el evento esta generado sin personajes
 	$builder_evento->build({tipo => 'BESAR'});
 	#Entonces se autogeneran personajes
-	like $builder_evento->evento->description, qr/\w+ besa a \w+/, 'se autogeneran personajes' ;
+	my $evento = $builder_evento->evento;
+	like $evento->description, qr/\w+ besa a \w+/, 'se autogeneran personajes' ;
+	#Y el evento esta en la biografia de un personaje y del otro
+	is scalar(grep {$_ eq $evento} @{$builder_evento->evento->besador->eventos}), 1, 'el evento esta en la biografia de un personaje';
+	is scalar(grep {$_ eq $evento} @{$builder_evento->evento->besado->eventos}), 1, 'el evento esta en la biografia del otro';
+	#Y el evento esta en el entorno
+	is scalar(grep {$_ eq $evento} @{Entorno->actual->eventos}), 1, 'el evento esta en el entorno';
 }
 
 {
@@ -30,12 +37,24 @@ my $builder_personaje = Universo->actual->builder_personaje;
 	my $nombre2 = $per2->name;
 	$builder_evento->build({besador => $per1,besado => $per2, tipo => 'BESAR'});
 	#Entonces se autogeneran personajes
-	like $builder_evento->evento->description, qr/$nombre1 besa a $nombre2/, 'se autogeneran personajes' ;
+	my $evento = $builder_evento->evento;
+	like $evento->description, qr/$nombre1 besa a $nombre2/, 'se autogeneran personajes' ;
+	#Y el evento esta en la biografia de un personaje y del otro
+	is scalar(grep {$_ eq $evento} @{$builder_evento->evento->besador->eventos}), 1, 'el evento esta en la biografia de un personaje';
+	is scalar(grep {$_ eq $evento} @{$builder_evento->evento->besado->eventos}), 1, 'el evento esta en la biografia del otro';
+	#Y el evento esta en el entorno
+	is scalar(grep {$_ eq $evento} @{Entorno->actual->eventos}), 1, 'el evento esta en el entorno';
 }
 
 {
 	#Cuando el evento esta generado con argumentos para los personajes definidos en los roles
 	$builder_evento->build({besador => {sex => 'f', name => 'Mora'}, tipo => 'BESAR'});
 	#Entonces se autogeneran personajes segun los parametros
-	like $builder_evento->evento->description, qr/Mora besa a \w+/, 'se autogeneran personajes' ;
+	my $evento = $builder_evento->evento;
+	like $evento->description, qr/Mora besa a \w+/, 'se autogeneran personajes' ;
+	#Y el evento esta en la biografia de un personaje y del otro
+	is scalar(grep {$_ eq $evento} @{$builder_evento->evento->besador->eventos}), 1, 'el evento esta en la biografia de un personaje';
+	is scalar(grep {$_ eq $evento} @{$builder_evento->evento->besado->eventos}), 1, 'el evento esta en la biografia del otro';
+	#Y el evento esta en el entorno
+	is scalar(grep {$_ eq $evento} @{Entorno->actual->eventos}), 1, 'el evento esta en el entorno';
 }

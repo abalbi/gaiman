@@ -40,7 +40,7 @@ sub description {
   if(defined $contexto) {
     $str = &{$self->{_description}}($self,$contexto);
   }
-  $str = $contexto->epoch.': '.$str;
+  $str = DateTime->from_epoch(epoch => $contexto->epoch).': '.$str;
   return $str;
 }
 

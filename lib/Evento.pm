@@ -30,6 +30,13 @@ use Data::Dumper;
     return $self->{_name};
   }
 
+  sub es {
+    my $self = shift;
+    my $key = shift;
+    return 1 if $self->name eq $key;
+    return 0;
+  }
+
 
   sub epoch {
     my $self = shift;

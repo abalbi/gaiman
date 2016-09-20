@@ -69,7 +69,6 @@ our $actual;
       my $key = $atributo->nombre;
       if($self->personaje->$key) {
         my $eventos = $atributo->crear_eventos($self->personaje);
-        push @{$self->personaje->eventos}, @{$eventos} if defined $eventos;
         Gaiman->logger->trace('crear_eventos: ', $key);
       }
     }

@@ -15,11 +15,12 @@ use Data::Dumper;
     my $method = $AUTOLOAD;
     my $self = shift;
     $method =~ s/.*:://;
-    $method =~ s/_(tipo)$//;
-    my $tipo = $1;
+    $method =~ s/_(tipo|detalle)$//;
+    my $post = $1;
     my $atributo = $method if grep {$_->nombre eq $method} @{Universo->actual->atributo_tipos};
     if($atributo) {
-      return $self->{_atributos}->{$atributo}->{tipo} if $tipo eq 'tipo';
+      return $self->{_atributos}->{$atributo}->{tipo} if $post eq 'tipo';
+      return $self->{_atributos}->{$atributo}->{tipo}->detalle($self->atributo($atributo)) if $post eq 'detalle';
       return $self->atributo($atributo,@_);
     }
     Gaiman->error("No existe el metodo o atributo '$method'");
