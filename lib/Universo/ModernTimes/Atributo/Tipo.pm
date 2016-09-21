@@ -137,7 +137,7 @@ sub preparar_para_build {
   }
   $builder->estructura->{$nombre} = $valor;
   if ($self->es_vacio($valor)) {
-    $valor_random = $self->alguno($estructura);
+    $valor_random = $self->alguno($builder, $valor);
     $valor = $valor_random
   }
   if(!$self->validar($valor)) {

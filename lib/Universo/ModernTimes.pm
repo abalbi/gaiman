@@ -2,13 +2,17 @@ package ModernTimes;
 use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
-use Universo::ModernTimes::Atributo::Tipo::Puntos;
+use Universo::ModernTimes::Atributo::Tipo::Fecha;
 use Universo::ModernTimes::Atributo::Tipo::Hash;
+use Universo::ModernTimes::Atributo::Tipo::Lista;
+use Universo::ModernTimes::Atributo::Tipo::Numero;
+use Universo::ModernTimes::Atributo::Tipo::Puntos;
+use Universo::ModernTimes::Atributo::Tipo::Texto;
+use Universo::ModernTimes::Evento;
 use Universo::ModernTimes::Evento::Tipo;
-use Universo::ModernTimes::Personaje::Builder;
 use Universo::ModernTimes::Evento::Builder;
 use Universo::ModernTimes::Personaje;
-use Universo::ModernTimes::Evento;
+use Universo::ModernTimes::Personaje::Builder;
 use Data::Dumper;
 use DateTime;
 use List::Util qw(shuffle);
@@ -54,23 +58,24 @@ sub init {
       )
     }
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
     nombre => 'sex',
     validos => [qw(f m)],
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Numero->new({
     nombre => 'age',
     alguno => sub {
       my $atributo_tipo = shift;
       return 15 + int rand 25;
     },
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Fecha->new({
     nombre => 'date_birth',
     alguno => sub {
       my $atributo_tipo = shift;
-      my $personaje = shift;
-      my $age = $personaje->{age};
+      my $builder = shift;
+      my $age = $builder->estructura->{age};
       my $date_birth;
       while (1) {
         eval {
@@ -99,15 +104,12 @@ sub init {
       return $eventos;      
     }
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Texto->new({
     nombre => 'name',
     posibles => sub {
       my $atributo_tipo = shift;
-      my $sexo = shift;
-      if(ref($sexo)) {
-        $sexo = $sexo->sex if ref($sexo) ne 'HASH' && $sexo->isa('Personaje');
-        $sexo = $sexo->{sex} if ref($sexo) eq 'HASH';
-      } 
+      my $builder = shift;
+      my $sexo = $builder->estructura->{sex};
       my $nombres = [];
       if($sexo eq 'f') {
         $nombres = [qw(Lucia Maria Martina Paula Daniela Sofia Valeria Carla Sara Alba Julia Noa Emma Claudia Carmen Marta Valentina Irene Adriana Ana Laura Elena Alejandra Ines Marina Vera Candela Laia Ariadna Lola Andrea Rocio Angela Vega Nora Jimena Blanca Alicia Clara Olivia Celia Alma Eva Elsa Leyre Natalia Victoria Isabel Cristina Lara Abril Triana Nuria Aroa Carolina Manuela Chloe Mia Mar Gabriela Mara Africa Iria Naia Helena Paola Noelia Nahia Miriam Salma)]
@@ -117,25 +119,25 @@ sub init {
       return $nombres;
     }
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
     nombre => 'heir_color',
     categoria => 'description',
     subcategoria => 'face',
     validos => [qw(moroch[a|o] rubi[a|o] castañ[a|o] peliroj[a|o])],
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
     nombre => 'heir_long',
     categoria => 'description',
     subcategoria => 'face',
     validos => [qw(largo corto)],
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
     nombre => 'heir_form',
     categoria => 'description',
     subcategoria => 'face',
     validos => [qw(lacio ondulado enrulado)],
   });
-  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo->new({
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
     nombre => 'eyes_color',
     categoria => 'description',
     subcategoria => 'face',
@@ -224,15 +226,6 @@ sub init {
     return $self->{_builder_personaje};
   }
 
-  sub tabla_biometrica_figuras {
-    return {
-      rectangulo => { medidas => [90,90,90], appearance => [1..3]},
-      triangulo => { medidas => [80,60,100], appearance => [2..5]},
-      reloj_de_arena => { medidas => [90,60,90], appearance => [2..5]},
-      triangulo_invertido => { medidas => [100,80,70], appearance => [2..5]},
-      ovalo => { medidas => [90,100,70], appearance => [1..3]},
-    }
-  }
 
   sub tabla_biometrica_tallas {
     return {
@@ -267,12 +260,22 @@ sub init {
       {nombre => q(delgadez 3), rango => [0..5],    figuras => [qw(rectangulo)]},
       {nombre => q(delgadez 2), rango => [5..10],   figuras => [qw(rectangulo triangulo_invertido)]},
       {nombre => q(delgadez 1), rango => [10..20],  figuras => [qw(rectangulo triangulo reloj_de_arena)]},
-      {nombre => q(normal),     rango => [2..25],   figuras => [qw(triangulo_invertido reloj_de_arena triangulo)]},
+      {nombre => q(normal),     rango => [2..25],   figuras => [qw(reloj_de_arena triangulo_invertido)]},
       {nombre => q(obecidad 1), rango => [25..30],  figuras => [qw(triangulo_invertido triangulo)]},
       {nombre => q(obecidad 2), rango => [30..35],  figuras => [qw(ovalo triangulo)]},
       {nombre => q(obecidad 3), rango => [35..100], figuras => [qw(ovalo)]},
     ];
 
+  }
+
+  sub tabla_biometrica_figuras {
+    return {
+      rectangulo => { medidas => [90,90,90], appearance => [1..3]},
+      triangulo => { medidas => [80,60,100], appearance => [2..5]},
+      reloj_de_arena => { medidas => [90,60,90], appearance => [2..5]},
+      triangulo_invertido => { medidas => [100,80,70], appearance => [2..5]},
+      ovalo => { medidas => [90,100,70], appearance => [1..3]},
+    }
   }
 
   sub crear_biometria_altura {
@@ -305,19 +308,21 @@ sub init {
     $hash->{size} = $size;
     my $size_rango = $tbl->{$size}->[int rand scalar @{$tbl->{$size}}];
     my $height = $size_rango->{rango_altura}->[int rand scalar @{$size_rango->{rango_altura}}];
-    $hash->{height} = $height / 100;
+    $height = $height / 100;
+    $hash->{height} = $height;
     my $weight = $size_rango->{rango_peso}->[int rand scalar @{$size_rango->{rango_peso}}];
     $hash->{weight} = $weight;
 
     my $imc = $weight /($height * $height);
+    print $imc;
     my $figura;
     foreach my $imc_rango (@{$self->tabla_biometrica_imc}) {
       if($imc > $imc_rango->{rango}->[0] && $imc < $imc_rango->{rango}->[$#{$imc_rango->{rango}}]) {
         my $nombre = $imc_rango->{nombre};
         $figura = $imc_rango->{figuras}->[int rand scalar @{$imc_rango->{figuras}}];
-        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $appearance) * (int rand 2));
-        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $appearance) * (int rand 2));
-        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $appearance) * (int rand 2));
+        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $appearance) * (int rand 3));
+        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $appearance) * (int rand 3));
+        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $appearance) * (int rand 3));
       } 
     }
 

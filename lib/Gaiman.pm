@@ -87,14 +87,6 @@ our $instancia;
     return $resultado;
   }
 
-
-  sub atributos {
-    my $self = shift;
-    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
-    return Universo->actual->atributo_tipo_nombres;
-  }
-
-
   sub runner {
     my $class = shift;
     my $arg = shift;
