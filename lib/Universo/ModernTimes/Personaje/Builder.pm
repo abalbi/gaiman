@@ -4,12 +4,14 @@ use strict;
 use Data::Dumper;
 use JSON;
 our $actual;
+our $logger = Log::Log4perl->get_logger(__PACKAGE__);
   sub new {
     my $self = shift;
     my $args = shift;
     $self = fields::new($self);
-    $self->{_argumentos} = {};
-    Gaiman->logger->info("Se instancio ",ref $self);
+    $self->clean;
+
+    $logger->info("Se instancio ",ref $self);
     return $self;
   }
 
@@ -24,7 +26,10 @@ our $actual;
   sub estructura {
     my $self = shift;
     my $valor = shift;
-    $self->{_estructura} = $valor if defined $valor;
+    if (!$self->{_estructura}) {
+      $self->{_estructura} = ModernTimes::Personaje::Builder::Estructura->new;
+      $self->{_estructura}->builder($self);
+    }
     return $self->{_estructura};
   }
 
@@ -38,6 +43,9 @@ our $actual;
   sub clean {
     my $self = shift;
     $self->{_personaje} = undef;
+    $self->{_argumentos} = {};
+    $self->{_estructura} = ModernTimes::Personaje::Builder::Estructura->new;
+    $self->{_estructura}->builder($self);
     return $self;    
   }
 
@@ -45,14 +53,16 @@ our $actual;
     my $self = shift;
     my $args = shift;
     $self->argumentos($args);
-    $self->estructura({});
+    $logger->info('[ARGS] '.Gaiman->l($args));
+    $self->estructura->clean;
+    $self->preparar('profesion');
     $self->preparar('sex');
     $self->preparar('age');
     $self->preparar('date_birth');
     $self->preparar('name');
-    $self->preparar('virtues', 10);
+    $self->preparar('virtues', 7);
     $self->preparar('background', 7);
-    $self->preparar('attribute', [10,8,6]);
+    $self->preparar('attribute', [7,5,3]);
     $self->preparar('ability', [13,9,5]);
     $self->preparar('body');
     $self->preparar('description');
@@ -69,7 +79,7 @@ our $actual;
       my $key = $atributo->nombre;
       if($self->personaje->$key) {
         my $eventos = $atributo->crear_eventos($self->personaje);
-        Gaiman->logger->trace('crear_eventos: ', $key);
+        $logger->trace('crear_eventos: ', $key);
       }
     }
 
@@ -91,165 +101,86 @@ our $actual;
     return [sort map { $_->nombre } @$atributos];
   }
 
-  sub sum {
-    my $self = shift;
-    my $atributos = shift;
-    my $sum = 0;
-    my $keys = [];
-    foreach my $atributo (@$atributos) {
-      push @$keys, $atributo->nombre if $atributo->isa('ModernTimes::Atributo::Tipo::Puntos');
-    }
-    map {$sum += $self->estructura->{$_}} @$keys;
-    return $sum;
-  }
-
-
   sub preparar_categoria {
     my $self = shift;
-    my $key = shift;
+    my $categoria = shift;
     my $valores = shift;
-    $self->estructura->{hash} = {};
-    my $atributos = Universo->actual->atributo_tipo($key);
-    $atributos = [$atributos] if ref $atributos ne 'ARRAY';
-    my $temp = [@{$valores}] if $valores;
-    $self->preparar_categoria_min_max($atributos);
-    $self->preparar_categoria_reducir_rangos($valores);
-    $self->preparar_categoria_asignacion( $temp);
-    foreach my $key (sort keys %{$self->estructura->{hash}}) {
-      $self->preparar_subcategoria($key, $self->estructura->{hash}->{$key}->{asignado});
-    }
-  }
-
-
-  sub preparar_categoria_min_max {
-    my $self = shift;
-    my $atributos = shift;
-    foreach my $atributo (@{$atributos}) {
-      my $key = $atributo->nombre;
-      $self->estructura->{hash}->{$atributo->subcategoria} = {
-        min => 0,
-        max => 0,
-        subcategoria => $atributo->subcategoria
-      } if !$self->estructura->{hash}->{$atributo->subcategoria};
-      if ($self->personaje->$key) {
-        $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $self->personaje->$key;
-        $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $self->personaje->$key;
-      } else {
-        if ($self->argumentos->{$key}) {
-          $self->argumentos->{$key} = $self->argumentos->{$key}->[int rand scalar @{$self->argumentos->{$key}}] if ref $self->argumentos->{$key} eq 'ARRAY';
-          $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $self->argumentos->{$key};
-          $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $self->argumentos->{$key}; 
-        } else {
-          if($atributo->validos) {
-            $self->estructura->{hash}->{$atributo->subcategoria}->{min} += $atributo->validos->[0];
-            $self->estructura->{hash}->{$atributo->subcategoria}->{max} += $atributo->validos->[$#{$atributo->validos}]; 
-          }
+    my $subcategorias = Universo->actual->subcategorias($categoria);
+    my $hash;
+    if(Universo->actual->distribuye_puntos($categoria)) {
+      foreach my $subcategoria (@$subcategorias) {
+        my $libres = $self->estructura->libres($subcategoria);
+        my $preseteados = $self->estructura->preseteados($subcategoria);
+        $hash->{$subcategoria}->{posibles} = [grep {$_ > $preseteados} @$valores];
+        $hash->{$subcategoria}->{libres} = $libres;
+        $hash->{$subcategoria}->{preseteados} = $preseteados;
+        $logger->logconfess("La subcategoria ",$subcategoria," tiene preseteados ", $preseteados, " punto y ninguno de los valores posibles ", Gaiman->l($valores)," puede ser aplicado.") if not scalar @{$hash->{$subcategoria}->{posibles}};
+      }
+      foreach my $subcategoria (sort {scalar(@{$hash->{$a}->{posibles}}) <=> scalar(@{$hash->{$b}->{posibles}})} @$subcategorias) {
+        my $puntos = $hash->{$subcategoria}->{posibles}->[int rand scalar @{$hash->{$subcategoria}->{posibles}}];
+        $logger->info(
+          '[CATEGORIA] ', $subcategoria,
+          ' posibles: ', Gaiman->l($hash->{$subcategoria}->{posibles}),
+          ' libres: ', Gaiman->l($hash->{$subcategoria}->{libres}),
+          ' preseteados: ', Gaiman->l($hash->{$subcategoria}->{preseteados}),
+        );
+        foreach my $subcat (@$subcategorias) {
+          next if $subcat eq $subcategoria;
+          $hash->{$subcat}->{posibles} = [grep {$_ ne $puntos} @{$hash->{$subcat}->{posibles}}];
         }
       }
+      
     }
-    Gaiman->logger->trace('preparar_categoria: MINIMOS: '.encode_json($self->estructura->{hash}));
-  }
-
-  sub preparar_categoria_asignacion {
-    my $self = shift;
-    my $temp = shift;
-    if($temp) {
-      my $ordenados = [sort {$b->{min} <=> $a->{min}} values %{$self->estructura->{hash}}];
-      my $ordenados = [sort {$b->{subcategoria} cmp $a->{subcategoria}} values %{$self->estructura->{hash}}];
-      foreach my $subcategoria (@$ordenados) { 
-        my $asignado = $subcategoria->{rango}->[int rand scalar @{$subcategoria->{rango}}];
-        $subcategoria->{asignado} = $asignado;
-        $subcategoria->{rango} = [];
-        foreach my $subcat (sort {$a->{key} cmp $b->{key}} values %{$self->estructura->{hash}}) {
-          next if $subcat->{asignado};
-          $subcat->{rango} = [grep {$_ ne $subcategoria->{asignado}} @{$subcat->{rango}}];
-        }
-      }
+    foreach my $subcategoria (@$subcategorias) {
+      $self->preparar_subcategoria($subcategoria, $hash->{$subcategoria}->{posibles}->[0]);
     }
-    Gaiman->logger->trace('preparar_categoria: ASIGNACION: '.encode_json($self->estructura->{hash}));
-  }
-
-  sub preparar_categoria_reducir_rangos {
-    my $self = shift;
-    my $valores = shift;
-    my $rangos_con_un_valor = 0;
-    return if !$valores;
-    foreach my $key (sort keys %{$self->estructura->{hash}}) {
-      my $subcat = $self->estructura->{hash}->{$key};
-      my $rango = [@$valores];
-      $rango = [grep {$_ < $subcat->{max}} @$rango];
-      $rango = [grep {$_ > $subcat->{min} } @$rango];
-      $subcat->{rango} = $rango;
-    }
-    foreach my $key (sort keys %{$self->estructura->{hash}}) {
-      my $subcat = $self->estructura->{hash}->{$key};
-      my $rango = $subcat->{rango};
-      Gaiman->error("La subcategoria $key tiene un minimo de $subcat->{min} y los valores pasados son @$valores ".encode_json($self->estructura->{hash})) if$valores->[0] < $subcat->{min};
-      Gaiman->error("Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor: ".encode_json($self->estructura->{hash})) if scalar @$rango == 0;
-      if(scalar @$rango == 1) {
-        my $unico = $rango->[0];
-        foreach my $key2 (sort keys %{$self->estructura->{hash}}) {
-          next if $key eq $key2;
-          my $subcat2 = $self->estructura->{hash}->{$key2};
-          my $rango2 = $subcat2->{rango};
-          $rango2 = [grep {$_ != $unico} @$rango2];
-          $subcat2->{rango} = $rango2;
-        }
-      }
-      $subcat->{rango} = $rango;
-    }
-
-    Gaiman->logger->trace('preparar_categoria: RANGOS: '.encode_json($self->estructura->{hash}));
-    Gaiman->error("Se encontraron 2 o mas subcategorias que solo pueden usar un valor. Esto es imposible") if $rangos_con_un_valor > 1;
-  }
-
-  sub preparar_subcategoria_filtro {
-    my $self = shift;
-    my $atributos = shift;
-    my $filtrados = [];
-    foreach my $atributo (@{$atributos}) {
-      my $key = $atributo->nombre;
-      $self->estructura->{$key} = $atributo->validos->[0] if $atributo->validos;
-      if ($self->personaje->$key || $self->argumentos->{$key}) {
-        $self->preparar_atributo($key); 
-        push @$filtrados, $key;
-      }
-    }
-    return $filtrados;
   }
 
   sub preparar_subcategoria {
     my $self = shift;
-    my $key = shift;
-    my $valor = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
-    $atributos = [$atributos] if ref $atributos ne 'ARRAY';
-    my $filtrados = $self->preparar_subcategoria_filtro($atributos);
-    my $sum = $self->sum($atributos);
-    my $puntos = $valor - $sum;
-    Gaiman->error("El numero de puntos asignados ($sum) supera a los asignar ($valor)") if $puntos < 0;
-    my $c = 20;
-    if($puntos) {
+    my $subcategoria = shift;
+    my $puntos = shift;
+    my $atributos = Universo->actual->atributo_tipo($subcategoria);
+    $logger->info('[SUBCATEROGIA] ',$subcategoria,' -> ',Gaiman->l($puntos));
+    if(Universo->actual->distribuye_puntos($subcategoria)) {
+
+      my $count = $puntos - $self->estructura->preseteados($subcategoria);
+      $logger->info('[SUBCATEROGIA] preseteados: ',Gaiman->l($self->estructura->preseteados($subcategoria)));
+      $logger->info('[SUBCATEROGIA] count: ',Gaiman->l($count));
+      my $c;
+      $logger->logconfess("El numero de puntos (",Gaiman->l($puntos),") es menor que los preseteados (", Gaiman->l($self->estructura->preseteados($subcategoria)),")") if $count < 0;
       while (1) {
-        $c--;
-        Gaiman->error("Se corta ciclo por recucion infinita para $key") if !$c;
-        last if !$puntos;
+        $c++;
+        die "Recusion infinita" if $c == 15;
         my $atributo = $atributos->[int rand scalar @$atributos];
-        my $key = $atributo->nombre;
-        if (scalar grep {$_ eq $key} @$filtrados) {
-          Gaiman->logger->trace("Se filtra el atributo $key por tener valor previo");
-          next;
+        my $nombre = $atributo->nombre;
+        my $val = $self->estructura->$nombre;
+        my $new = $val + 1;
+        if($atributo->validar($new) && !$self->estructura->es_previo($nombre)) {
+          $self->preparar_atributo($nombre,$new);
+          $count--;
+        } else {
+          $new = $val;
         }
-        my $valor = $self->estructura->{$key};
-        $valor += 1;
-        if($atributo->validar($valor)) {
-          $self->preparar_atributo($atributo->nombre, $valor);
-          $puntos--;
-        }
+        my $sum = $self->estructura->sum($subcategoria);
+        my $libres = $self->estructura->libres($subcategoria);
+        $logger->trace(
+          "[SUBCATEROGIA] ",$nombre,
+          $self->estructura->es_previo($nombre) ? '(PREVIO)':'', 
+          Gaiman->l($val), '->', $new,
+          ' sum:', $sum,
+          ' libres:', $libres,
+          ' puntos:', $count, '/', $puntos,
+          ' preseteados:',$self->estructura->preseteados($subcategoria)
+        );
+        next if $count;
+        last;
       }
     } else {
-      foreach my $atributo (@{$atributos}) {
-        $self->preparar_atributo($atributo->nombre);   
+      foreach my $atributo (@$atributos) {
+        my $nombre = $atributo->nombre;
+        $self->preparar_atributo($nombre);
+
       }
     }
   }
@@ -259,20 +190,181 @@ our $actual;
     my $key = shift;
     my $valor_parametro = shift;
     my $valor = $valor_parametro;
-    my $valor_random;
     my $atributo = Universo->actual->atributo_tipo($key);
-    $valor = $atributo->preparar_para_build($self, $valor_parametro);
-    $self->estructura->{$key} = $valor if defined $valor;
+    $self->estructura->$key($valor) if defined $valor;
+    if($atributo->es_vacio($self->estructura->$key)) {
+      $self->estructura->$key($atributo->alguno($self));
+    }
+    $atributo->aplicar_alteraciones($self, $valor_parametro);
     return;
   }
 
   sub asignar {
     my $self = shift;
-    foreach my $key (sort keys %{$self->estructura}) {
+    foreach my $key (sort keys %{$self->estructura->atributos}) {
       next if $key eq 'hash';
-      my $valor = $self->estructura->{$key};
+      my $valor = $self->estructura->$key;
+      $logger->warn($valor) if ref $valor;
       $self->personaje->$key($valor) if $valor ne $self->personaje->$key;   
     }
-    Gaiman->logger->info('Se construyo ', $self->personaje->name, ': ', $self->personaje->json);
+    $logger->info('Se construyo ', $self->personaje->name, ': ', $self->personaje->json);
   }
+1;
+
+package ModernTimes::Personaje::Builder::Estructura;
+our $AUTOLOAD;
+use Data::Dumper;
+our $logger = Log::Log4perl->get_logger(__PACKAGE__);
+
+use fields qw(_atributos _builder _hash);
+  sub new {
+    my $self = shift;
+    my $args = shift;
+    $self = fields::new($self);
+    return $self;
+  }
+
+  sub hash {
+    my $self = shift;
+    $self->{_hash} = {} if !$self->{_hash};
+    return $self->{_hash};
+  }
+
+  sub sum {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = Universo->actual->atributo_tipo($key);
+    my $sum = 0;
+    foreach my $atributo (@$atributos) {
+      my $nombre = $atributo->nombre;
+      $sum += $self->$nombre;
+    }
+    return $sum;
+
+  }
+
+  sub libres {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = Universo->actual->atributo_tipo($key);
+    my $sum = 0;
+    foreach my $atributo (@$atributos) {
+      my $nombre = $atributo->nombre;
+      $sum -= $self->$nombre if !$self->es_previo($nombre);
+      $sum += $atributo->max;
+      $sum -= $atributo->max if $self->es_previo($nombre); 
+    }
+    return $sum;
+  }
+
+  sub preseteados {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = Universo->actual->atributo_tipo($key);
+    my $sum = $self->sum($key);
+    foreach my $atributo (@$atributos) {
+      $sum -= $atributo->defecto;
+    }
+    return $sum;
+  }
+
+  sub es_previo {
+    my $self = shift;
+    my $key = shift;
+    return 1 if exists $self->builder->argumentos->{$key} || $self->builder->personaje->$key;
+    return 0;
+  }
+
+  sub AUTOLOAD {
+    my $method = $AUTOLOAD;
+    my $self = shift;
+    $method =~ s/.*:://;
+    my $atributo = $method;
+    if($atributo) {
+      return $self->atributo($atributo,@_);
+    }
+    Gaiman->error("No existe el metodo o atributo '$method'");
+  }
+
+
+  sub atributos {
+    my $self = shift;
+    return $self->{_atributos};
+  }
+
+  sub atributo {
+    my $self = shift;
+    my $key = shift;
+    my $caller = [caller(2)]->[3];
+    my $parametro = shift;
+    my $original = $self->{_atributos}->{$key};
+    my $valor = $self->{_atributos}->{$key};
+    my $atributo = Universo->actual->atributo_tipo($key);
+    if(defined $parametro) {
+      if(!$atributo->es_vacio($parametro)) {
+        if(!$atributo->validar($parametro)) {
+          $logger->logwarn("No es valido el valor ".Gaiman->l($parametro)." para el atributo ", $atributo->nombre);
+        } else {
+          $valor = $parametro;
+          if(ref $valor eq 'ARRAY') {
+            my $lista = Gaiman->l($valor);
+            $valor = $valor->[int rand scalar @$valor];
+            $logger->trace("$key => parametro RANDOM: ".Gaiman->l($lista)." -> ".Gaiman->l($valor)." desde $caller");
+          }
+          $self->{_atributos}->{$key} = $valor;
+          $logger->trace("$key => parametro: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
+          return $self->{_atributos}->{$key};
+        }
+      }
+    }
+ 
+    if (!$atributo->es_vacio($self->{_atributos}->{$key})) {
+      $valor = $self->{_atributos}->{$key};
+      $logger->trace("$key => estructura: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
+      return $self->{_atributos}->{$key} ;
+    }
+    
+    if(exists $self->builder->argumentos->{$key}) {
+      my $valor = $self->builder->argumentos->{$key};
+      if(!$atributo->validar($valor) && !$atributo->es_vacio($valor)) {
+        $logger->logwarn("No es valido el valor $valor para el atributo ", $atributo->nombre);
+      } else {
+        if(ref $valor eq 'ARRAY') {
+          my $lista = Gaiman->l($valor);
+          $valor = $valor->[int rand scalar @$valor];
+          $logger->info("$key => argumento RANDOM: ".Gaiman->l($lista)." -> ".Gaiman->l($valor)." desde $caller");
+        }
+        $logger->trace("$key => argumento: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
+        $self->{_atributos}->{$key} = $valor;
+        return $self->{_atributos}->{$key};
+      }
+    }
+
+    if (!$atributo->es_vacio($self->builder->personaje->$key)) {
+      $valor = $self->builder->personaje->$key;
+      $logger->trace("$key => personaje: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
+    }
+    if ($atributo->es_vacio($valor)) {
+      $valor = $atributo->defecto;
+      $logger->trace("$key => defecto: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
+    }
+
+    $self->{_atributos}->{$key} = $valor;
+    return $self->{_atributos}->{$key};
+  }
+
+  sub clean {
+    my $self = shift;
+    $self->{_atributos} = {};
+    return $self;
+  }
+
+  sub builder {
+    my $self = shift;
+    my $valor = shift;
+    $self->{_builder} = $valor if defined $valor;
+    return $self->{_builder};
+  }
+
+
 1;

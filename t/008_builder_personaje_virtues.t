@@ -9,6 +9,10 @@ use Gaiman;
 #Y tener una instancia de ModernTimes
 ModernTimes->new;
 #Y un builder de personaje
+
+$ModernTimes::Personaje::Builder::logger->level('TRACE');
+$ModernTimes::Personaje::Builder::Estructura::logger->level('INFO');
+
 my $builder = Universo->actual->builder_personaje;
 {
 	#Cuando le hago build en un nuevo personaje
@@ -21,6 +25,7 @@ my $builder = Universo->actual->builder_personaje;
 	ok($personaje->instinct, 'tiene instinct');
 	ok($personaje->courage, 'tiene courage');
 }
+
 {
 	#Cuando le hago build en un personaje que ya tenie conviction
 	my $personaje = Personaje->new;
@@ -34,6 +39,7 @@ my $builder = Universo->actual->builder_personaje;
 	ok($personaje->instinct, 'tiene instinct');
 	ok($personaje->courage, 'tiene courage');
 }
+
 {
 	#Cuando le hago build con el argumento conviction a un nuevo personaje
 	my $personaje = Personaje->new;
@@ -46,6 +52,7 @@ my $builder = Universo->actual->builder_personaje;
 	ok($personaje->instinct, 'tiene instinct');
 	ok($personaje->courage, 'tiene courage');
 }
+
 {
 	#Cuando le hago build con el argumento conviction a un personaje que tenga instinct
 	my $personaje = Personaje->new;
@@ -62,13 +69,11 @@ my $builder = Universo->actual->builder_personaje;
 
 }
 
-{
+throws_ok {
 	#Cuando le hago build argumentos que superen el maximo de puntos a asignar a la subcategoria
 	#Entonces dara un error
 	my $personaje = Personaje->new;
 	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
-	dies_ok {
-		$builder->build({conviction => 5, instinct => 5
-	}), 'El numero de puntos asignados (11) supera a los asignar (10)', 'dara un error'}
-}
+	$builder->build({conviction => 5, instinct => 5});
+} qr/El numero de puntos \('\d'\) es menor que los preseteados \('\d'\)/, 'da un error';

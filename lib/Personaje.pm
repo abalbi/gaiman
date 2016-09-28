@@ -4,6 +4,9 @@ use JSON;
 use fields qw(_atributos _eventos);
 our $AUTOLOAD;
 use Data::Dumper;
+
+our $logger = Log::Log4perl->get_logger(__PACKAGE__);
+
 	sub new {
 		my $self = shift;
 		my $args = shift;
@@ -36,9 +39,13 @@ use Data::Dumper;
     } if !exists $self->{_atributos}->{$key};
     my $tipo = Universo->actual->atributo_tipo($key);
     $self->{_atributos}->{$key}->{tipo} = $tipo if !$self->{_atributos}->{$key}->{tipo};
-    if(defined $valor) {
-      $self->{_atributos}->{$key}->{valor} = $tipo->valor($self, $valor);
-      Gaiman->logger->trace("Se asigno ",$self->name,": ",encode_json({$key => $valor}));
+    if(!$tipo->es_vacio($valor)) {
+      if($tipo->validar($valor)) {
+        $self->{_atributos}->{$key}->{valor} = $tipo->valor($self, $valor);
+        $logger->trace("Se asigno ",$self->name,": ",encode_json({$key => $valor}));
+      } else {
+        $logger->logwarn("No es valido el valor ".Gaiman->l($valor)." para el atributo ", $tipo->nombre);
+      }
     }
     $valor = $self->{_atributos}->{$key}->{valor};
     return 'NONAME' if $key eq 'name' &&  !$self->{_atributos}->{$key}->{valor};

@@ -24,7 +24,7 @@ our $instancia;
     $arg = {} if not defined $arg;
     $arg->{random}  = $arg->{random} ? $arg->{random} : 0;
     $arg->{srand}  = $arg->{srand} ? $arg->{srand} : 8094;
-    $arg->{log}    = $arg->{log} ? $arg->{log} : q(TRACE);
+    $arg->{log}    = $arg->{log} ? $arg->{log} : q(OFF);
     $Gaiman::logger->level( $arg->{log} );
     $arg->{srand} = int rand 10000 if $arg->{random};
     srand($arg->{srand});
@@ -45,6 +45,15 @@ our $instancia;
     my $self = shift;
     $self = $self eq __PACKAGE__ ? $self->instancia : $self;
     return $logger;
+  }
+
+  sub l {
+    my $self = shift;
+    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
+    my $valor = shift;
+    $valor = encode_json($valor) if ref $valor;
+    $valor = (defined $valor ? "'$valor'" : 'undef');
+    return $valor;
   }
 
   sub t {

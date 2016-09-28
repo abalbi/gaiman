@@ -27,6 +27,11 @@ sub valor {
   return $valor;
 }
 
+sub defecto {
+  my $self = shift;
+  return {};  
+}
+
 sub es_vacio {
   my $self = shift;
   my $valor = shift;
@@ -71,14 +76,7 @@ sub preparar_para_build {
       }
     }
   }
-  $builder->estructura->{$nombre} = $valor;
-  Gaiman->logger->debug("preparar_atributo ",$self->nombre,": ",encode_json({
-    parametro => $parametro,
-    argumentos => $argumentos->{$nombre},
-    personaje => $personaje->$nombre,
-    random => $valor_random,
-    final => $valor,
-  }));
+  $builder->estructura->$nombre($valor);
   if ($self->es_vacio($valor)) {
     $valor_random = $self->alguno($builder, $valor);
     $valor = $valor_random

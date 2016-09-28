@@ -1,13 +1,15 @@
 package Universo;
 use Data::Dumper;
-use fields qw(_atributo_tipos _evento_tipos _builder_personaje _builder_evento);
+use fields qw(_atributo_tipos _evento_tipos _builder_personaje _builder_evento _cache);
+
+our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 
 our $actual;
   sub new {
     my $self = shift;
     my $args = shift;
     $self = fields::new($self);
-    Gaiman->logger->info("Se instancio ",ref $self);
+    $logger->info("Se instancio ",ref $self);
     $self->{_atributo_tipos} = [];
     $self->{_evento_tipos} = [];
     $self->init;
@@ -21,13 +23,17 @@ our $actual;
   }
 
   sub atributo_tipo {
-  	my $self = shift;
+    my $self = shift;
   	my $key = shift;
   	my $atributo_tipos = [];
+    return $self->{_cache}->{$key} if exists $self->{_cache}->{$key};
   	foreach my $atributo_tipo (@{$self->atributo_tipos}) {
   		push @{$atributo_tipos}, $atributo_tipo if $atributo_tipo->es($key);
   	}
-  	return $atributo_tipos->[0] if scalar @{$atributo_tipos} == 1;
+  	if(scalar @{$atributo_tipos} == 1) {
+      $self->{_cache}->{$key} = $atributo_tipos->[0];
+      return $atributo_tipos->[0];
+    }
   	return $atributo_tipos;
   }
 

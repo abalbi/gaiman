@@ -1,8 +1,11 @@
 package ModernTimes::Atributo::Tipo;
 use strict;
-use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno _crear_eventos);
+use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno _crear_eventos _alteraciones);
 use Data::Dumper;
 use JSON;
+
+our $logger = Log::Log4perl->get_logger(__PACKAGE__);
+
 
 sub new {
 	my $self = shift;
@@ -11,11 +14,12 @@ sub new {
 	$self->{_nombre} = $args->{nombre};
 	$self->{_validos} = $args->{validos};
 	$self->{_posibles} = $args->{posibles};
-	$self->{_subcategoria} = $args->{subcategoria};
+  $self->{_subcategoria} = $args->{subcategoria};
+  $self->{_alteraciones} = $args->{alteraciones};
 	$self->{_categoria} = $args->{categoria};
   $self->{_alguno} = $args->{alguno};
   $self->{_crear_eventos} = $args->{crear_eventos};
-	Gaiman->logger->trace("Se instancio ",ref $self);
+	$logger->trace("Se instancio ",ref $self);
 	return $self;
 }
 
@@ -27,6 +31,8 @@ sub es {
 	return 1 if $self->categoria eq $key;
 	return 0;
 }
+
+sub max { return 0 }
 
 sub nombre {
   my $self = shift;
@@ -62,13 +68,21 @@ sub posibles {
   return $self->{_posibles};
 }
 
-
 sub validar {
   my $self = shift;
   my $valor = shift;
+  my $valores = $valor; 
+  $valores = [$valor] if ref($valor) eq '';
   return 1 if !$self->validos;
   return 1 if scalar @{$self->validos} eq 0;
-  return 1 if scalar grep {$_ eq $valor} @{$self->validos};
+  my $boo = 1;
+  foreach my $val (@$valores) {
+    $logger->trace("A validar: ".Gaiman->l($val)." contra ".Gaiman->l($valores));
+    if(!scalar grep {$_ eq $val} @{$self->validos}) {
+      $boo = 0;
+    }
+  }
+  return $boo;
 	return 0;
 }
 
@@ -109,7 +123,36 @@ sub valor {
 sub es_vacio {
   my $self = shift;
   my $valor = shift;
-  return not defined $valor;  
+  return 1 if $valor eq 'NONAME';
+  return 1 if not defined $valor;
+  return 0;  
+}
+
+sub vacio {
+  return undef;  
+}
+ 
+sub alteraciones {
+  my $self = shift;
+  return $self->{_alteraciones};
+}
+
+sub aplicar_alteraciones {
+  my $self = shift;
+  my $builder = shift;
+  my $parametro = shift;
+  my $alteraciones = $self->alteraciones;
+  foreach my $alteracion (@$alteraciones) {
+    $logger->trace('aplicar_alteraciones: ',$self->nombre,' altera :',encode_json($alteracion));
+    my $key = $alteracion->{atributo};
+    my $valor = $alteracion->{valor};
+    $builder->estructura->$key($valor);
+  }
+}
+
+sub defecto {
+  my $self = shift;
+  return undef;  
 }
 
 sub preparar_para_build {
@@ -123,6 +166,11 @@ sub preparar_para_build {
   my $valor;
   my $nombre = $self->nombre;
   $valor = $parametro;
+  if ($personaje->$nombre) {
+    if ($personaje->$nombre ne 'NONAME') {
+      $valor = $personaje->$nombre;
+    }
+  }
   if (exists $argumentos->{$nombre}){
     if(ref $argumentos->{$nombre} eq 'ARRAY') {
       $valor = $argumentos->{$nombre}->[int rand scalar @{$argumentos->{$nombre}}];
@@ -130,22 +178,17 @@ sub preparar_para_build {
       $valor = $argumentos->{$nombre};
     }
   }
-  if ($personaje->$nombre) {
-    if ($personaje->$nombre ne 'NONAME') {
-      $valor = $personaje->$nombre;
-    }
-  }
-  $builder->estructura->{$nombre} = $valor;
+  $builder->estructura->$nombre($valor);
   if ($self->es_vacio($valor)) {
     $valor_random = $self->alguno($builder, $valor);
     $valor = $valor_random
   }
   if(!$self->validar($valor)) {
     Gaiman->warn("No es valido el valor $valor para el atributo ", $self->nombre);
-    $valor = undef;
+    $valor = 'undef';
   }
-  $builder->estructura->{$nombre} = $valor;
-  Gaiman->logger->trace("preparar_atributo ",$self->nombre,": ", $valor ? $valor : 'NULO', ' -> ',encode_json({
+  $builder->estructura->$nombre($valor);
+  $logger->trace("preparar_atributo ",$self->nombre,": ", $valor ? $valor : 'NULO', ' -> ',encode_json({
     parametro => $parametro,
     argumentos => $argumentos->{$nombre},
     personaje => $personaje->$nombre,

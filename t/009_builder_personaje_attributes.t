@@ -4,6 +4,9 @@ use Test::More qw(no_plan);;
 use Test::Exception;
 use Test::Output;
 
+$ModernTimes::Personaje::Builder::logger->level('INFO');
+$ModernTimes::Personaje::Builder::Estructura::logger->level('INFO');
+
 #Dado el uso de Gaiman
 use Gaiman;
 #Y tener una instancia de ModernTimes
@@ -59,7 +62,7 @@ my $builder = Universo->actual->builder_personaje;
 	dies_ok {
 		$builder->build;
 	} 'se disparar un error por que excede el maximo asignable';
-	like $@, qr/La subcategoria social tiene un minimo de 11 y los valores pasados son 10 8 6/, 'con un mensaje correspondiente';
+	like $@, qr/La subcategoria \w+ tiene preseteados \d punto y ninguno de los valores posibles '\[7,5,3\]' puede ser aplicado/, 'con un mensaje correspondiente';
 }
 
 {
@@ -75,7 +78,7 @@ my $builder = Universo->actual->builder_personaje;
 	dies_ok {
 		$builder->build;
 	} 'se disparar un error por que dos categorias tiene una sola opcion posible';
-	like $@, qr/Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor/, 'con un mensaje correspondiente';
+	like $@, qr/La subcategoria \w+ tiene preseteados \d punto y ninguno de los valores posibles '\[7,5,3\]' puede ser aplicado/, 'con un mensaje correspondiente';
 }
 
 {
@@ -93,5 +96,5 @@ my $builder = Universo->actual->builder_personaje;
 	dies_ok {
 		$builder->build;
 	} 'Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito';
-	like $@, qr/Se encontraron una subcategoria sin valores posibles a asignar. Lo mas posible es que sea por que tenemos dos subcategorias declaradas con minimos que requieren el mismo valor/, 'con un mensaje correspondiente';
+	like $@, qr/La subcategoria \w+ tiene preseteados \d punto y ninguno de los valores posibles '\[7,5,3\]' puede ser aplicado/, 'con un mensaje correspondiente';
 }

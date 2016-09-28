@@ -18,6 +18,9 @@ use DateTime;
 use List::Util qw(shuffle);
 use JSON;
 
+
+our $logger = Log::Log4perl->get_logger(__PACKAGE__);
+
 sub base_date {
   my $self = shift;
   return DateTime->new(year => 1990);  
@@ -70,12 +73,19 @@ sub init {
       return 15 + int rand 25;
     },
   });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
+    nombre => 'profesion',
+    validos => [qw(secretari[a|o])],
+    alteraciones => [
+      {atributo => 'appearance', valor => [5]}
+    ],
+  });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Fecha->new({
     nombre => 'date_birth',
     alguno => sub {
       my $atributo_tipo = shift;
       my $builder = shift;
-      my $age = $builder->estructura->{age};
+      my $age = $builder->estructura->age;
       my $date_birth;
       while (1) {
         eval {
@@ -109,7 +119,7 @@ sub init {
     posibles => sub {
       my $atributo_tipo = shift;
       my $builder = shift;
-      my $sexo = $builder->estructura->{sex};
+      my $sexo = $builder->estructura->sex;
       my $nombres = [];
       if($sexo eq 'f') {
         $nombres = [qw(Lucia Maria Martina Paula Daniela Sofia Valeria Carla Sara Alba Julia Noa Emma Claudia Carmen Marta Valentina Irene Adriana Ana Laura Elena Alejandra Ines Marina Vera Candela Laia Ariadna Lola Andrea Rocio Angela Vega Nora Jimena Blanca Alicia Clara Olivia Celia Alma Eva Elsa Leyre Natalia Victoria Isabel Cristina Lara Abril Triana Nuria Aroa Carolina Manuela Chloe Mia Mar Gabriela Mara Africa Iria Naia Helena Paola Noelia Nahia Miriam Salma)]
@@ -202,7 +212,7 @@ sub init {
     subcategoria => 'background',
   })} qw(allies contacts fame influence mentor resources);
 
-  Gaiman->logger->trace('Se agregaron los atributo_tipos: ',join ',', map {$_->nombre} @{$self->atributo_tipos});
+  Gaiman->logger->trace('Se agregaron los atributo_tipos: ', join ',', sort map {$_->nombre} @{$self->atributo_tipos});
 }
 
   sub es_catetoria {
@@ -212,6 +222,24 @@ sub init {
       return 1 if $atributo_tipo->categoria eq $key;
     }
     return 0;
+  }
+
+  sub distribuye_puntos {
+    my $self = shift;
+    my $key = shift;
+    return 0 if scalar grep {$_ eq $key} qw(description face);
+    return 1;    
+  }
+
+  sub subcategorias {
+    my $self = shift;
+    my $categoria = shift;
+    my $atributos = $self->atributo_tipo($categoria);
+    my $hash = {};
+    foreach my $atributo (@$atributos) {
+      $hash->{$atributo->subcategoria} = $atributo->subcategoria;
+    } 
+    return [sort keys %$hash];
   }
 
   sub builder_evento {
@@ -292,8 +320,8 @@ sub init {
     my $self = shift;
     my $builder = shift;
     my $valor = shift;
-    my $appearance = $builder->estructura->{appearance};
-    my $size = $builder->estructura->{body}->{size};
+    my $appearance = $builder->estructura->appearance;
+    my $size = $builder->estructura->body->{size};
     my $hash = {};
     my $tbl = $self->tabla_biometrica_tallas;
     my $sizes = [];
@@ -314,7 +342,6 @@ sub init {
     $hash->{weight} = $weight;
 
     my $imc = $weight /($height * $height);
-    print $imc;
     my $figura;
     foreach my $imc_rango (@{$self->tabla_biometrica_imc}) {
       if($imc > $imc_rango->{rango}->[0] && $imc < $imc_rango->{rango}->[$#{$imc_rango->{rango}}]) {
