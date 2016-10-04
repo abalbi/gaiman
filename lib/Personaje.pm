@@ -30,7 +30,7 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
   }
 
   sub atributo {
-  	my $self = shift;
+    my $self = shift;
     my $key = shift;
     my $valor = shift;
     $self->{_atributos}->{$key} = {

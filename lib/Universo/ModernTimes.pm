@@ -77,7 +77,16 @@ sub init {
     nombre => 'profesion',
     validos => [qw(secretari[a|o])],
     alteraciones => [
-      {atributo => 'appearance', valor => [5]}
+     # {atributo => 'age', valor => [21..40]},
+     {atributo => 'appearance', valor => [5]},
+     # {atributo => 'manipulation', valor => [3..5]},
+     # {atributo => 'academics', valor => [2..5]},
+     # {atributo => 'computer', valor => [2..3]},
+     # {atributo => 'linguistics', valor => [2..3]},
+     # {atributo => 'politics', valor => [1]},
+     # {atributo => 'finance', valor => [1]},
+     # {atributo => 'subterfuge', valor => [1..2]},
+     # {atributo => 'etiquette', valor => [1..3]},
     ],
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Fecha->new({

@@ -18,7 +18,5 @@ my $builder = Universo->actual->builder_personaje;
 	$builder->build({sex => 'f'});
 	#Entonces el personaje tendra una profesion
 	ok $personaje->profesion, 'el personaje tendra una profesion';
-
-#	print $personaje->detalle;
 }
 
