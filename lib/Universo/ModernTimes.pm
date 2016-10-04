@@ -13,6 +13,8 @@ use Universo::ModernTimes::Evento::Tipo;
 use Universo::ModernTimes::Evento::Builder;
 use Universo::ModernTimes::Personaje;
 use Universo::ModernTimes::Personaje::Builder;
+use Universo::ModernTimes::Personaje::Builder::Estructura;
+use Universo::ModernTimes::Personaje::Builder::Comando;
 use Data::Dumper;
 use DateTime;
 use List::Util qw(shuffle);
@@ -224,6 +226,16 @@ sub init {
   Gaiman->logger->trace('Se agregaron los atributo_tipos: ', join ',', sort map {$_->nombre} @{$self->atributo_tipos});
 }
 
+  sub es_atributo {
+    my $self = shift;
+    my $key = shift;
+    foreach my $atributo_tipo (@{$self->atributo_tipos}) {
+      return 1 if $atributo_tipo->nombre eq $key;
+    }
+    return 0;
+  }
+
+
   sub es_catetoria {
     my $self = shift;
     my $key = shift;
@@ -232,6 +244,16 @@ sub init {
     }
     return 0;
   }
+
+  sub es_subcatetoria {
+    my $self = shift;
+    my $key = shift;
+    foreach my $atributo_tipo (@{$self->atributo_tipos}) {
+      return 1 if $atributo_tipo->subcategoria eq $key;
+    }
+    return 0;
+  }
+
 
   sub distribuye_puntos {
     my $self = shift;

@@ -64,4 +64,15 @@ our $actual;
     my $self = shift;
     return $self->actual->es_catetoria(@_);
   }
+
+  sub es_subcatetoria {
+    my $self = shift;
+    return $self->actual->es_subcatetoria(@_);
+  }
+
+  sub es_atributo {
+    my $self = shift;
+    return $self->actual->es_atributo(@_);
+  }
+
 1;
