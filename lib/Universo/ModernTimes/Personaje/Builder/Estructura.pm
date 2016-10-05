@@ -21,13 +21,72 @@ use fields qw(_atributos _builder _hash);
     my $self = shift;
     my $key = shift;
     my $atributos = Universo->actual->atributo_tipo($key);
-    my $hash;
-    my $sum = 0;
+    $atributos = [$atributos] if ref $atributos ne 'ARRAY';
+    my $hash = {};
     foreach my $atributo (@$atributos) {
       my $nombre = $atributo->nombre;
       $hash->{$nombre} = $self->$nombre;
     }
     return $hash;
+  }
+
+
+  sub asignados {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = Universo->actual->atributo_tipo($key);
+    $atributos = [$atributos] if ref $atributos ne 'ARRAY';
+    my $sum = 0;
+    foreach my $atributo (@$atributos) {
+      my $nombre = $atributo->nombre;
+      $sum += $self->sum($nombre) - $atributo->defecto if !$self->es_previo($nombre);
+      $sum += $self->sum($nombre) if $self->es_previo($nombre);
+    }
+    return $sum;
+
+  }
+
+  sub sum_defecto {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = Universo->actual->atributo_tipo($key);
+    my $sum = 0;
+    foreach my $atributo (@$atributos) {
+      $sum += $atributo->defecto;
+    }
+    return $sum;
+  }
+
+  sub validar_punto_vs_libres {
+    my $self = shift;
+    my $key = shift;
+    my $puntos = shift;
+    if ($puntos > $self->sum_libres($key)) {
+      return 0;
+    } 
+    return 1;
+  }
+
+  sub validar_punto_vs_preseteados {
+    my $self = shift;
+    my $key = shift;
+    my $puntos = shift;
+    if ($puntos < $self->sum_preseteados($key)) {
+      return 0;
+    } 
+    return 1;
+  }
+
+  sub sum_preseteados {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = Universo->actual->atributo_tipo($key);
+    my $sum = $self->sum($key);
+    foreach my $atributo (@$atributos) {
+      my $nombre = $atributo->nombre;
+      $sum -= $atributo->defecto;
+    }
+    return $sum;
   }
 
   sub sum {
@@ -44,31 +103,7 @@ use fields qw(_atributos _builder _hash);
 
   }
 
-  sub asignados {
-    my $self = shift;
-    my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
-    my $sum = 0;
-    foreach my $atributo (@$atributos) {
-      my $nombre = $atributo->nombre;
-      $sum += $self->sum($nombre) - $atributo->defecto;
-    }
-    return $sum;
-
-  }
-
-  sub defecto {
-    my $self = shift;
-    my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
-    my $sum = 0;
-    foreach my $atributo (@$atributos) {
-      $sum += $atributo->defecto;
-    }
-    return $sum;
-  }
-
-  sub libres {
+  sub sum_libres {
     my $self = shift;
     my $key = shift;
     my $atributos = Universo->actual->atributo_tipo($key);
@@ -82,16 +117,6 @@ use fields qw(_atributos _builder _hash);
     return $sum;
   }
 
-  sub preseteados {
-    my $self = shift;
-    my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
-    my $sum = $self->sum($key);
-    foreach my $atributo (@$atributos) {
-      $sum -= $atributo->defecto;
-    }
-    return $sum;
-  }
 
   sub es_previo {
     my $self = shift;
@@ -104,7 +129,7 @@ use fields qw(_atributos _builder _hash);
     my $method = $AUTOLOAD;
     my $self = shift;
     $method =~ s/.*:://;
-    my $atributo = $method;
+    my $atributo = $method if grep {$_->nombre eq $method} @{Universo->actual->atributo_tipos};;
     if($atributo) {
       return $self->atributo($atributo,@_);
     }

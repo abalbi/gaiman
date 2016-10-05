@@ -30,7 +30,6 @@ my $builder = Universo->actual->builder_personaje;
 	ok($personaje->intelligence, 'tiene intelligence');
 	ok($personaje->wits, 'tiene wits');
 }
-
 {
 	#Cuando le hago build en un personaje con appearance 5
 	my $personaje = Personaje->new;
@@ -62,7 +61,7 @@ my $builder = Universo->actual->builder_personaje;
 	dies_ok {
 		$builder->build;
 	} 'se disparar un error por que excede el maximo asignable';
-	like $@, qr/La subcategoria \w+ tiene preseteados \d punto y ninguno de los valores posibles '\[7,5,3\]' puede ser aplicado/, 'con un mensaje correspondiente';
+	like $@, qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'con un mensaje correspondiente';
 }
 
 {
@@ -78,7 +77,7 @@ my $builder = Universo->actual->builder_personaje;
 	dies_ok {
 		$builder->build;
 	} 'se disparar un error por que dos categorias tiene una sola opcion posible';
-	like $@, qr/La subcategoria \w+ tiene preseteados \d punto y ninguno de los valores posibles '\[7,5,3\]' puede ser aplicado/, 'con un mensaje correspondiente';
+	like $@, qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'con un mensaje correspondiente';
 }
 
 {
@@ -96,5 +95,5 @@ my $builder = Universo->actual->builder_personaje;
 	dies_ok {
 		$builder->build;
 	} 'Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito';
-	like $@, qr/La subcategoria \w+ tiene preseteados \d punto y ninguno de los valores posibles '\[7,5,3\]' puede ser aplicado/, 'con un mensaje correspondiente';
+	like $@, qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'con un mensaje correspondiente';
 }

@@ -28,7 +28,7 @@ my $builder = Universo->actual->builder_personaje;
 	like $personaje->description_texto, qr/sus medidas son \d\d\d*-\d\d\d*-\d\d\d*/;
 	like $personaje->description_texto, qr/Mide \d.\d\d, pesa \d\d kg/;
 }
-exit;
+
 {
 	#Cuando le hago build en un nuevo personaje
 	my $personaje = ModernTimes::Personaje->new;

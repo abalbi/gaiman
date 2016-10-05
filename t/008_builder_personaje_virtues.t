@@ -11,7 +11,7 @@ ModernTimes->new;
 #Y un builder de personaje
 
 $ModernTimes::Personaje::Builder::logger->level('TRACE');
-$ModernTimes::Personaje::Builder::Estructura::logger->level('INFO');
+$ModernTimes::Personaje::Builder::Estructura::logger->level('TRACE');
 
 my $builder = Universo->actual->builder_personaje;
 {
@@ -69,11 +69,16 @@ my $builder = Universo->actual->builder_personaje;
 
 }
 
-throws_ok {
+{
 	#Cuando le hago build argumentos que superen el maximo de puntos a asignar a la subcategoria
 	#Entonces dara un error
 	my $personaje = Personaje->new;
 	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
-	$builder->build({conviction => 5, instinct => 5});
-} qr/El numero de puntos \('\d'\) es menor que los preseteados \('\d'\)/, 'da un error';
+	throws_ok {
+		$builder->build({conviction => 5, instinct => 5});
+	} qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'da un error';
+	
+}
+
+

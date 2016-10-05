@@ -337,16 +337,6 @@ sub init {
     }
   }
 
-  sub crear_biometria_altura {
-    my $self = shift;
-    my $personaje = shift;
-    my $height = (int rand 70) + 140;
-    $height = $height + (($personaje->{strengh} + $personaje->{stamina}-6)*5);
-    $height = $height + ($personaje->{appearance} * ((170 - $height)/6));
-    $height -= 10 if $personaje->{sex} eq 'f';
-    return $height;
-  }
-
   sub crear_biometria {
     my $self = shift;
     my $builder = shift;

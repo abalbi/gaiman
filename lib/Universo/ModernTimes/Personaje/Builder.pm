@@ -130,7 +130,6 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
     foreach my $key (sort keys %{$self->estructura->atributos}) {
       next if $key eq 'hash';
       my $valor = $self->estructura->$key;
-      $logger->warn($valor) if ref $valor;
       $self->personaje->$key($valor) if $valor ne $self->personaje->$key;   
     }
     $logger->info('Se construyo ', $self->personaje->name, ': ', $self->personaje->json);
