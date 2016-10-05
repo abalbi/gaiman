@@ -97,26 +97,3 @@ describe "Calculos de Estructura" => sub {
 
 
 
-exit;
-{
-#Cuando le hago build en un nuevo personaje
-	my $personaje = ModernTimes::Personaje->new;
-	$personaje->heir_color('rubi[a|o]');
-	$builder->personaje($personaje);
-	dies_ok {
-		$builder->argumentos({sex => 'f', stamina => 1, strengh => 1, manipulation => 1, charisma => 1});
-		$builder->build();
-	}
-}
-
-{
-#Y le hago build en un otro nuevo personaje con stamina y strengh en 1
-$builder->clean;
-my $personaje = ModernTimes::Personaje->new;
-$personaje->heir_color('rubi[a|o]');
-$builder->personaje($personaje);
-lives_ok {
-	$builder->build({sex => 'f', stamina => 1, strengh => 1});
-}
-
-}

@@ -11,12 +11,6 @@ use fields qw(_atributos _builder _hash);
     return $self;
   }
 
-  sub hash {
-    my $self = shift;
-    $self->{_hash} = {} if !$self->{_hash};
-    return $self->{_hash};
-  }
-
   sub valores {
     my $self = shift;
     my $key = shift;
@@ -30,21 +24,6 @@ use fields qw(_atributos _builder _hash);
     return $hash;
   }
 
-
-  sub asignados {
-    my $self = shift;
-    my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
-    $atributos = [$atributos] if ref $atributos ne 'ARRAY';
-    my $sum = 0;
-    foreach my $atributo (@$atributos) {
-      my $nombre = $atributo->nombre;
-      $sum += $self->sum($nombre) - $atributo->defecto if !$self->es_previo($nombre);
-      $sum += $self->sum($nombre) if $self->es_previo($nombre);
-    }
-    return $sum;
-
-  }
 
   sub sum_defecto {
     my $self = shift;

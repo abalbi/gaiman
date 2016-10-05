@@ -4,11 +4,6 @@ use base qw(ModernTimes::Atributo::Tipo);
 use fields qw();
 use Data::Dumper;
 
-sub min {
-	my $self = shift;
-  return $self->validos->[0];
-}
-
 sub max {
 	my $self = shift;
   return $self->validos->[$#{$self->validos}];

@@ -142,21 +142,6 @@ our $instancia;
     return $str;
   }
 
-  sub error {
-    my $self = shift;
-    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
-    Gaiman->logger->error(@_);
-    confess @_;    
-  }
-
-  sub warn {
-    my $self = shift;
-    $self = $self eq __PACKAGE__ ? $self->instancia : $self;
-    Gaiman->logger->warn(@_);
-    cluck @_;    
-  }
-
-
   sub install {
     my $self = shift;
     Gaiman::logger->info('Dando permisos a gaiman');

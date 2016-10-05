@@ -64,17 +64,6 @@ sub _color {
   return $passed ? 'green' : 'red';
 }
 
-sub join_context_description {
-  my $str = '';
-  my $c = 1;
-  foreach my $item (@$context_description) {
-    $item = (' ' x $c).$item;
-    $c++; 
-  }
-  $str = join "\n", @$context_description;
-  return $str;
-}
-
 sub spec_description { $spec_description = shift; push @$description_stash, $spec_description}
 sub context_description { 
   $context_description = shift; 

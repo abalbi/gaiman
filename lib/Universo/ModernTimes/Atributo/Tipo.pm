@@ -32,16 +32,9 @@ sub es {
 	return 0;
 }
 
-sub max { return 0 }
-
 sub nombre {
   my $self = shift;
   return $self->{_nombre};
-}
-
-sub build {
-  my $self = shift;
-  return $self->{_build};
 }
 
 sub categoria {
@@ -83,7 +76,6 @@ sub validar {
     }
   }
   return $boo;
-	return 0;
 }
 
 sub alguno {
@@ -128,72 +120,10 @@ sub es_vacio {
   return 0;  
 }
 
-sub vacio {
-  return undef;  
-}
- 
-sub alteraciones {
-  my $self = shift;
-  return $self->{_alteraciones};
-}
-
-sub aplicar_alteraciones {
-  my $self = shift;
-  my $builder = shift;
-  my $parametro = shift;
-  my $alteraciones = $self->alteraciones;
-  foreach my $alteracion (@$alteraciones) {
-    $logger->trace('aplicar_alteraciones: ',$self->nombre,' altera :',encode_json($alteracion));
-    my $key = $alteracion->{atributo};
-    my $valor = $alteracion->{valor};
-    $builder->estructura->$key($valor);
-  }
-}
 
 sub defecto {
   my $self = shift;
   return undef;  
 }
 
-sub preparar_para_build {
-  my $self = shift;
-  my $builder = shift;
-  my $parametro = shift;
-  my $estructura = $builder->estructura;
-  my $argumentos = $builder->argumentos;
-  my $personaje = $builder->personaje;
-  my $valor_random;
-  my $valor;
-  my $nombre = $self->nombre;
-  $valor = $parametro;
-  if ($personaje->$nombre) {
-    if ($personaje->$nombre ne 'NONAME') {
-      $valor = $personaje->$nombre;
-    }
-  }
-  if (exists $argumentos->{$nombre}){
-    if(ref $argumentos->{$nombre} eq 'ARRAY') {
-      $valor = $argumentos->{$nombre}->[int rand scalar @{$argumentos->{$nombre}}];
-    } else {
-      $valor = $argumentos->{$nombre};
-    }
-  }
-  $builder->estructura->$nombre($valor);
-  if ($self->es_vacio($valor)) {
-    $valor_random = $self->alguno($builder, $valor);
-    $valor = $valor_random
-  }
-  if(!$self->validar($valor)) {
-    Gaiman->warn("No es valido el valor $valor para el atributo ", $self->nombre);
-    $valor = 'undef';
-  }
-  $builder->estructura->$nombre($valor);
-  $logger->trace("preparar_atributo ",$self->nombre,": ", $valor ? $valor : 'NULO', ' -> ',encode_json({
-    parametro => $parametro,
-    argumentos => $argumentos->{$nombre},
-    personaje => $personaje->$nombre,
-    random => $valor_random,
-  }));
-  return $valor;
-}
 1;
