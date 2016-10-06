@@ -3,7 +3,7 @@ our $AUTOLOAD;
 use Data::Dumper;
 our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 
-use fields qw(_atributos _builder _hash);
+use fields qw(_atributos _builder _hash _tipos);
   sub new {
     my $self = shift;
     my $args = shift;
@@ -112,9 +112,32 @@ use fields qw(_atributos _builder _hash);
     if($atributo) {
       return $self->atributo($atributo,@_);
     }
-    Gaiman->error("No existe el metodo o atributo '$method'");
+    $logger->logconfess("No existe el metodo o atributo '$method'");
   }
 
+  sub atributo_tipos {
+    my $self = shift;
+    my $key = shift;
+    my $tipos = Universo->actual->atributo_tipo($key);
+    $tipos = [$tipos] if ref $tipos ne 'ARRAY';
+    my $array = [];
+    foreach my $tipo (@$tipos) {
+      $self->atributo_tipo($tipo->nombre, $tipo) if !$self->atributo_tipo($tipo->nombre);
+      push @$array, $self->atributo_tipo($tipo->nombre);
+    }
+    return $array->[0] if scalar @$array == 1;
+    return $array;
+  }
+
+  sub atributo_tipo {
+    my $self = shift;
+    my $key = shift;
+    my $tipo = shift;
+    if (defined $tipo) {
+      $self->{_tipos}->{$key} = ModernTimes::Personaje::Builder::Estructura::Atributo->new($tipo);
+    }
+    return $self->{_tipos}->{$key};
+  }
 
   sub atributos {
     my $self = shift;
@@ -193,5 +216,33 @@ use fields qw(_atributos _builder _hash);
     return $self->{_builder};
   }
 
+1;
 
+package ModernTimes::Personaje::Builder::Estructura::Atributo;
+  our $AUTOLOAD;
+  use fields qw(_tipo _validos);
+  sub new {
+    my $self = shift;
+    my $args = shift;
+    $self = fields::new($self);
+    $self->{_tipo} = $args;
+    return $self;
+  }
+
+  sub AUTOLOAD {
+    my $method = $AUTOLOAD;
+    my $self = shift;
+    $method =~ s/.*:://;
+    return $self->{_tipo}->$method(@_);
+  }
+
+  sub validos {
+    my $self = shift;
+    my $valor = shift;
+    if(defined $valor) {
+      $self->{_validos} = $valor;  
+    }
+    return $self->{_validos} if exists $self->{_validos};
+    return $self->{_tipo}->validos;    
+  }
 1;
