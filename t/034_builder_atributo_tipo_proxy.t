@@ -44,6 +44,17 @@ describe "Atributo tipo proxy para Builder::Estructura" => sub {
 			};
 		};
 	};
+	context "CUANDO pido un atributo_tipo con una subcategoria" => sub {
+		my $atributos = $builder->estructura->atributo_tipo('virtues');
+		my $bases = Universo->actual->atributo_tipo('virtues');
+		it "ENTONCES los atributos de Estructura::Atributo y de base deben ser la misma cantidad" => sub {
+			is scalar @$atributos, scalar @$bases, 'Misma cantidad';
+			is $atributos->[0]->{_tipo}, $bases->[0];
+			is $atributos->[1]->{_tipo}, $bases->[1];
+			is $atributos->[2]->{_tipo}, $bases->[2];
+		};
+
+	};
 };
 
 

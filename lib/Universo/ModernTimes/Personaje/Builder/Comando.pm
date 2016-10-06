@@ -120,7 +120,7 @@ sub _hacer {
   my $puntos = $self->puntos;
   $puntos = 0 if not defined $puntos;
   $logger->logconfess('[SUBCATEROGIA] ', $subcategoria, ': menos puntos (',$puntos,') que preseteados (',$self->estructura->sum_preseteados($subcategoria),')') if !$self->estructura->validar_punto_vs_preseteados($subcategoria, $puntos);
-  my $atributos = Universo->actual->atributo_tipo($subcategoria);
+  my $atributos = $self->estructura->atributo_tipo($subcategoria);
   $self->stash($self->estructura->valores($subcategoria));
   if(Universo->actual->distribuye_puntos($subcategoria)) {
     my $count = $puntos - $self->estructura->sum_preseteados($subcategoria);
@@ -129,6 +129,12 @@ sub _hacer {
     while (1) {
       $c++;
       die "Recusion infinita" if $c == 15;
+      $logger->debug(
+        'puntos:' => $puntos,' ',
+        'count:' => $count,' ',
+        'libres:' => Gaiman->l($libres),' ',
+        'sum:' => Gaiman->l($sum),' ',
+      );
       my $atributo = $atributos->[int rand scalar @$atributos];
       my $nombre = $atributo->nombre;
       my $val = $self->estructura->$nombre;
@@ -169,7 +175,7 @@ sub _hacer {
   my $self = shift;
   my $key = $self->key;
   my $valor = $self->puntos;
-  my $atributo = Universo->actual->atributo_tipo($key);
+  my $atributo = $self->estructura->atributo_tipo($key);
   $self->stash({$key => $self->estructura->$key});
   if(defined $valor) {
     $self->estructura->$key($valor);

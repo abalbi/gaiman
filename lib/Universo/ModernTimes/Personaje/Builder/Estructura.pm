@@ -14,7 +14,7 @@ use fields qw(_atributos _builder _hash _tipos);
   sub valores {
     my $self = shift;
     my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
+    my $atributos = $self->atributo_tipo($key);
     $atributos = [$atributos] if ref $atributos ne 'ARRAY';
     my $hash = {};
     foreach my $atributo (@$atributos) {
@@ -28,7 +28,7 @@ use fields qw(_atributos _builder _hash _tipos);
   sub sum_defecto {
     my $self = shift;
     my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
+    my $atributos = $self->atributo_tipo($key);
     my $sum = 0;
     foreach my $atributo (@$atributos) {
       $sum += $atributo->defecto;
@@ -59,7 +59,7 @@ use fields qw(_atributos _builder _hash _tipos);
   sub sum_preseteados {
     my $self = shift;
     my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
+    my $atributos = $self->atributo_tipo($key);
     my $sum = $self->sum($key);
     foreach my $atributo (@$atributos) {
       my $nombre = $atributo->nombre;
@@ -71,7 +71,7 @@ use fields qw(_atributos _builder _hash _tipos);
   sub sum {
     my $self = shift;
     my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
+    my $atributos = $self->atributo_tipo($key);
     $atributos = [$atributos] if ref $atributos ne 'ARRAY';
     my $sum = 0;
     foreach my $atributo (@$atributos) {
@@ -85,7 +85,7 @@ use fields qw(_atributos _builder _hash _tipos);
   sub sum_libres {
     my $self = shift;
     my $key = shift;
-    my $atributos = Universo->actual->atributo_tipo($key);
+    my $atributos = $self->atributo_tipo($key);
     my $sum = 0;
     foreach my $atributo (@$atributos) {
       my $nombre = $atributo->nombre;
@@ -122,8 +122,9 @@ use fields qw(_atributos _builder _hash _tipos);
     $tipos = [$tipos] if ref $tipos ne 'ARRAY';
     my $array = [];
     foreach my $tipo (@$tipos) {
-      $self->{_tipos}->{$key} = ModernTimes::Personaje::Builder::Estructura::Atributo->new($tipo) if !$self->{_tipos}->{$key};
-      push @$array, $self->{_tipos}->{$key};
+      my $nombre = $tipo->nombre;
+      $self->{_tipos}->{$nombre} = ModernTimes::Personaje::Builder::Estructura::Atributo->new($tipo) if !$self->{_tipos}->{$nombre};
+      push @$array, $self->{_tipos}->{$nombre};
     }
     return $array->[0] if scalar @$array == 1;
     return $array;
@@ -141,7 +142,7 @@ use fields qw(_atributos _builder _hash _tipos);
     my $parametro = shift;
     my $original = $self->{_atributos}->{$key};
     my $valor = $self->{_atributos}->{$key};
-    my $atributo = Universo->actual->atributo_tipo($key);
+    my $atributo = $self->atributo_tipo($key);
     if(defined $parametro) {
       if(!$atributo->validar($parametro)) {
         $logger->logwarn("No es valido el valor ".Gaiman->l($parametro)." para el atributo ", $atributo->nombre);
