@@ -115,28 +115,18 @@ use fields qw(_atributos _builder _hash _tipos);
     $logger->logconfess("No existe el metodo o atributo '$method'");
   }
 
-  sub atributo_tipos {
+  sub atributo_tipo {
     my $self = shift;
     my $key = shift;
     my $tipos = Universo->actual->atributo_tipo($key);
     $tipos = [$tipos] if ref $tipos ne 'ARRAY';
     my $array = [];
     foreach my $tipo (@$tipos) {
-      $self->atributo_tipo($tipo->nombre, $tipo) if !$self->atributo_tipo($tipo->nombre);
-      push @$array, $self->atributo_tipo($tipo->nombre);
+      $self->{_tipos}->{$key} = ModernTimes::Personaje::Builder::Estructura::Atributo->new($tipo) if !$self->{_tipos}->{$key};
+      push @$array, $self->{_tipos}->{$key};
     }
     return $array->[0] if scalar @$array == 1;
     return $array;
-  }
-
-  sub atributo_tipo {
-    my $self = shift;
-    my $key = shift;
-    my $tipo = shift;
-    if (defined $tipo) {
-      $self->{_tipos}->{$key} = ModernTimes::Personaje::Builder::Estructura::Atributo->new($tipo);
-    }
-    return $self->{_tipos}->{$key};
   }
 
   sub atributos {

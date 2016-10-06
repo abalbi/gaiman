@@ -23,7 +23,7 @@ my $builder = Universo->actual->builder_personaje;
 
 describe "Atributo tipo proxy para Builder::Estructura" => sub {
 	context "CUANDO pido un atributo_tipo de una estructura" => sub {
-		my $atributo = $builder->estructura->atributo_tipos('appearance');
+		my $atributo = $builder->estructura->atributo_tipo('appearance');
 		my $base = Universo->actual->atributo_tipo('appearance');
 		it "ENTONCES el atributo sera un ModernTimes::Personaje::Builder::Estructura::Atributo" => sub {
 			isa_ok $atributo, 'ModernTimes::Personaje::Builder::Estructura::Atributo';
