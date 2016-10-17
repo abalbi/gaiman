@@ -62,7 +62,7 @@ use fields qw(_key _puntos _builder _stash _hecho);
 
   sub hacer {
     my $self = shift;
-    $logger->info("Argumentos:",Gaiman->l($self->argumentos));
+    $logger->info('[COMANDO] Haciendo... ', $self->key, " argumentos:",Gaiman->l($self->argumentos));
     return $self->_hacer;    
   }
 
@@ -89,8 +89,9 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
     my $self = shift;
     my $categoria = $self->key;
     my $valores = [@{$self->puntos}];
-    $logger->info('[CATEGORIA] ',$categoria);
+    $logger->info('[COMANDO CATEGO] ',$categoria);
     my $subcategorias = Universo->actual->subcategorias($categoria);
+    $logger->info("[COMANDO CATEGO] preasinaciones: ",Gaiman->l({map {$_, {preasignados => $self->estructura->sum_preasignados($_)}} @$subcategorias}));
     my $casos = [];
     my $hash = {};
     $self->stash($self->estructura->valores($categoria));
@@ -100,21 +101,24 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
         foreach my $subcategoria (@$subcategorias) {
           my $libres = $self->estructura->sum_libres($subcategoria);
           my $preasignados = $self->estructura->sum_preasignados($subcategoria);
+          my $posibles = $self->estructura->sum_posibles($subcategoria);
           if(!scalar grep {$_ >= $preasignados} @$valores) {
             $logger->logdie("Falla: Para ", $subcategoria, " se estan preasignados ", $preasignados, ", que es mas que el maximo de los valores a repartir");
           }
           my $factibilidad = $valor - $preasignados;
-          my $prioridad = $factibilidad + $libres;
+          my $prioridad = $factibilidad + $libres + $posibles->[$#{$posibles}];
           push @$casos, {
             subcategoria => $subcategoria,
             puntos => $valor,
             libres => $libres,
             preasignados => $preasignados,
+            posibles => $posibles,
             factibilidad => $factibilidad,
             prioridad => $prioridad,
           }
         }
       }
+
 
       #FILTROS
       $casos = [sort {$a->{prioridad} <=> $b->{prioridad}} @$casos];
@@ -124,7 +128,12 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
         my $caso = $casos->[$i];
         my $valor = $caso->{puntos};
         my $subcategoria = $caso->{subcategoria};
-        $logger->debug('CASO:',Gaiman->l($caso));
+        $logger->debug('CASO:',
+          $subcategoria, ' <=> ',
+          $valor, ' ',
+          prioridad ,': ', $caso->{prioridad}, ' ',
+          posibles ,': ', Gaiman->l($caso->{posibles}), ' ',
+        );
         if($caso->{factibilidad} < 0 ){
           $logger->trace('Se ignora ',$subcategoria,' con puntos ', $valor, ' porque tiene factibilidad ', $caso->{factibilidad});
           next;
@@ -290,15 +299,18 @@ use Data::Dumper;
     $self->stash({$key => $self->estructura->$key});
     $valor = $valor->[int rand scalar @$valor] if ref $valor eq 'ARRAY';
     if(!$atributo->es_vacio($valor)) {
-      $logger->logdie("No se valido $valor para el atributo $key ".Gaiman->l($atributo->validos)) if !$atributo->validar($valor);
+      $logger->logdie("[COMANDO ATRIBU] No se valido $valor para el atributo $key ".Gaiman->l($atributo->validos)) if !$atributo->validar($valor);
     } else {
-      $logger->trace("Valor vacio: ", Gaiman->l($valor), " previo: ", $self->estructura->es_previo($key), " vacio: ", $atributo->es_vacio($self->estructura->$key));
-      $valor = $self->estructura->$key($atributo->alguno($self)) if !$self->estructura->es_previo($key) || $atributo->es_vacio($self->estructura->$key);
+      $logger->trace("[COMANDO ATRIBU] Valor vacio: ", Gaiman->l($valor), " previo: ", $self->estructura->es_previo($key), " vacio: ", $atributo->es_vacio($self->estructura->$key), " es_hash: ", $atributo->es_hash);
+      $valor = $self->estructura->$key($atributo->alguno($self, $valor)) if !$self->estructura->es_previo($key) || $atributo->es_vacio($self->estructura->$key);
+      if($atributo->es_hash) {
+        $valor = $self->estructura->$key($atributo->alguno($self, $valor)) if $atributo->es_vacio($self->estructura->$key);
+      }
     }
     $self->estructura->$key($valor);
-    $logger->info('[COMANDO] se asigna ', Gaiman->l($valor), ' a ', Gaiman->l($key));
+    $logger->info('[COMANDO ATRIBU] se asigna ', Gaiman->l($valor), ' a ', Gaiman->l($key));
     if($atributo->alteraciones->{$valor}) {
-      $logger->info('[COMANDO] aplican alteraciones a ', Gaiman->l([keys %{$atributo->alteraciones->{$valor}}]), ' para ', Gaiman->l($key));
+      $logger->info('[COMANDO ATRIBU] aplican alteraciones a ', Gaiman->l([keys %{$atributo->alteraciones->{$valor}}]), ' para ', Gaiman->l($key));
       foreach my $key2 (keys %{$atributo->alteraciones->{$valor}}) {
         my $atributo2 = $self->estructura->atributo_tipo($key2);
         $atributo2->validos($atributo->alteraciones->{$valor}->{$key2})

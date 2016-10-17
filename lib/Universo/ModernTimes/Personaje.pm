@@ -48,6 +48,7 @@ sub detalle {
 	my $str = '';
   my $parrafos = [];
   push @$parrafos, colored $self->name, 'UNDERLINE BOLD';  
+  push @$parrafos, $self->concept;  
   $self->detalle_categoria($parrafos, 'attribute');
   $self->detalle_categoria($parrafos, 'ability');
   $self->detalle_categoria($parrafos, 'advantage');

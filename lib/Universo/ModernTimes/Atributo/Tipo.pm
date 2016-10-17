@@ -65,8 +65,11 @@ sub posibles {
   if(defined $contexto) {
     return &{$self->{_posibles}}($self,$contexto);
   }
+  return $self->validos if scalar @{$self->validos}; 
   return $self->{_posibles};
 }
+
+sub es_hash { 0 };
 
 sub validar {
   my $self = shift;
@@ -92,7 +95,7 @@ sub alguno {
   my $self = shift;
   my $builder = shift;
   if($self->{_alguno}) {
-    return &{$self->{_alguno}}($self, $builder);
+    return &{$self->{_alguno}}($self, $builder, @_);
   }
   if(scalar @{$self->validos}) {
     my $valor = $self->validos->[int rand scalar @{$self->validos}];

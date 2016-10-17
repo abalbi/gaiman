@@ -80,6 +80,20 @@ use fields qw(_atributos _builder _hash _tipos);
     return $sum;
   }
 
+  sub sum_posibles {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = $self->atributo_tipo($key);
+    my $min = 0;
+    my $max = 0;
+    foreach my $atributo (@$atributos) {
+      $min += $atributo->posibles->[0] - $atributo->defecto;
+      $max += $atributo->posibles->[$#{$atributo->posibles}] - $atributo->defecto;
+    }
+    my $sum = [$min..$max];
+    return $sum;
+  }
+
   sub sum_preasignados {
     my $self = shift;
     my $key = shift;
@@ -243,6 +257,17 @@ package ModernTimes::Personaje::Builder::Estructura::Atributo;
     return $self->{_tipo}->$method(@_);
   }
 
+
+  sub posibles {
+    my $self = shift;
+    my $contexto = shift;
+    if(defined $contexto) {
+      return $self->{_tipo}->posibles($self,$contexto);
+    }
+    return $self->validos if scalar @{$self->validos}; 
+    return $self->posibles;
+  }
+
   sub validos {
     my $self = shift;
     my $valor = shift;
@@ -257,7 +282,7 @@ package ModernTimes::Personaje::Builder::Estructura::Atributo;
   sub alguno {
     my $self = shift;
     my $builder = shift;
-    if($self->validos) {
+    if(scalar @{$self->validos}) {
       return $self->{_tipo}->alguno($builder, $self->validos, @_);
     } else {
       return $self->{_tipo}->alguno($builder,@_);
@@ -268,5 +293,10 @@ package ModernTimes::Personaje::Builder::Estructura::Atributo;
     my $self = shift;
     my $valor = shift;
     return $self->{_tipo}->validar($valor, $self->validos);
+  }
+
+  sub es_hash {
+    my $self = shift;
+    return $self->{_tipo}->es_hash;
   }
 1;

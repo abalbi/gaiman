@@ -27,6 +27,8 @@ sub valor {
   return $valor;
 }
 
+sub es_hash { 1 };
+
 sub defecto {
   my $self = shift;
   return {};  

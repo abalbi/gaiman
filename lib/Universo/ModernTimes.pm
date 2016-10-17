@@ -1,4 +1,4 @@
-package ModernTimes;
+  package ModernTimes;
 use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
@@ -336,7 +336,7 @@ sub init {
     my $builder = shift;
     my $valor = shift;
     my $appearance = $builder->estructura->appearance;
-    my $size = $builder->estructura->body->{size};
+    my $size = $builder->estructura->body->{size} ? $builder->estructura->body->{size} : $valor->{size};
     my $hash = {};
     my $tbl = $self->tabla_biometrica_tallas;
     my $sizes = [];

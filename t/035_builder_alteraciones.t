@@ -39,6 +39,7 @@ describe "Alteraciones" => sub {
 	};
 	context "CUANDO hago build de un personaje" => sub {
 		my $personaje = ModernTimes::Personaje->new;
+		$personaje->concept('mafioso');
 		$builder->personaje($personaje);
 		$builder->build;
 		it "ENTONCES el personaje tendra concept" => sub {

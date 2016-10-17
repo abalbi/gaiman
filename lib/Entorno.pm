@@ -56,12 +56,6 @@ our $actual;
     return $personaje;
   }
 
-  sub personajes {
-    my $self = shift;
-    my $array = [grep {$_->isa('Personaje')} @{$self->elementos}];
-    return $array;
-  }
-
   sub eventos {
     my $self = shift;
     my $array = [grep {$_->isa('Evento')} @{$self->elementos}];

@@ -23,6 +23,7 @@ my $builder = Universo->actual->builder_personaje;
   like 
     colorstrip($personaje->detalle),
     qr/^\w*
+\w*
 attribute
 physical: strengh: \d; dexterity: \d; stamina: \d
 social: charisma: \d; manipulation: \d; appearance: \d

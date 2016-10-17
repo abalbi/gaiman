@@ -42,7 +42,6 @@ throws_ok {
 } qr/No se valido \w+ para el atributo sex \'\[.+\]\'/;
 #Entonces el personaje tiene sex f
 isnt($personaje->sex,'INVALID', 'el personaje NO tiene sex INVALID');
-exit;
 
 
 #################################################
