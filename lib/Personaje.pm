@@ -26,7 +26,7 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
       return $self->{_atributos}->{$atributo}->{tipo}->detalle($self->atributo($atributo)) if $post eq 'detalle';
       return $self->atributo($atributo,@_);
     }
-    Gaiman->error("No existe el metodo o atributo '$method'");
+    $logger->logconfess("No existe el metodo o atributo '$method'");
   }
 
   sub atributo {
@@ -77,6 +77,6 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
       $hash->{$key} = $self->atributos->{$key}->{valor}; 
     }
     return encode_json($hash);
-  }
+}
 
 1;

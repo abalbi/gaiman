@@ -2,18 +2,21 @@ package Universo;
 use Data::Dumper;
 use fields qw(_atributo_tipos _evento_tipos _builder_personaje _builder_evento _cache);
 
-our $logger = Log::Log4perl->get_logger(__PACKAGE__);
+use Exporter qw(import);
+our @ISA =   qw(Exporter);
+our @EXPORT = ( qw(son es tienen tiene altera El Alteramos) );
 
+our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 our $actual;
   sub new {
     my $self = shift;
     my $args = shift;
     $self = fields::new($self);
     $logger->info("Se instancio ",ref $self);
+    $actual = $self;
     $self->{_atributo_tipos} = [];
     $self->{_evento_tipos} = [];
     $self->init;
-    $actual = $self;
     return $self;
   }
 
@@ -74,5 +77,56 @@ our $actual;
     my $self = shift;
     return $self->actual->es_atributo(@_);
   }
+
+  sub Alteramos {
+    my $atributo = shift;
+    my $keys = shift;
+    my $arg = shift;
+    $keys = [$keys] if ref $keys ne 'ARRAY';
+    my $atributo = Universo->actual->atributo_tipo($atributo);
+    foreach my $key (@$keys) {
+      push @{$atributo->validos}, $key if !scalar grep {$_ eq $key} @{$atributo->validos};
+      $atributo->alteraciones->{$key} = {} if !exists $atributo->alteraciones->{$key};
+      my $hash = $atributo->alteraciones->{$key};
+      if(exists $arg->{es}) {
+        my $es = $arg->{es};
+        my $alter_padre = {%{$atributo->alteraciones->{$es}}};
+        foreach my $key (keys %{$arg->{alteraciones}}) {
+          $alter_padre->{$key} = $arg->{alteraciones}->{$key}
+        }
+        $arg->{alteraciones} = $alter_padre;
+      }
+      if(exists $arg->{alteraciones}) {
+        foreach my $key (keys %{$arg->{alteraciones}}) {
+          $hash->{$key} = $arg->{alteraciones}->{$key}
+        }
+      }
+    }
+  }
+
+  sub El { }
+
+  sub es {
+    my $hash->{es} = shift;
+    return $hash;
+  }
+
+  sub son {
+    return es(@_);
+  }
+
+  sub tienen {
+    return altera(@_);
+  }
+
+  sub tiene {
+    return altera(@_);
+  }
+
+  sub altera {
+    my $hash->{alteraciones} = {@_};
+    return $hash;
+  }
+
 
 1;

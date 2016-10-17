@@ -4,8 +4,7 @@ use Test::More qw(no_plan);;
 use Test::Exception;
 use Test::Output;
 
-$ModernTimes::Personaje::Builder::logger->level('INFO');
-$ModernTimes::Personaje::Builder::Estructura::logger->level('INFO');
+$ModernTimes::Personaje::Builder::logger->level('TRACE');
 
 #Dado el uso de Gaiman
 use Gaiman;
@@ -58,12 +57,10 @@ my $builder = Universo->actual->builder_personaje;
 	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	#Entonces se disparar un error por que excede el maximo asignable
-	dies_ok {
+	throws_ok {
 		$builder->build;
-	} 'se disparar un error por que excede el maximo asignable';
-	like $@, qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'con un mensaje correspondiente';
+	} qr/Falla: Para \w+ se estan preasignados \d+, que es mas que el maximo de los valores a repartir/, 'con un mensaje correspondiente';
 }
-
 {
 	#Cuando le hago build en un personaje con wits 5, perception 4, appearance 5 y charisma 4
 	my $personaje = Personaje->new;
@@ -74,10 +71,9 @@ my $builder = Universo->actual->builder_personaje;
 	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	#Entonces se disparar un error por que dos categorias tiene una sola opcion posible
-	dies_ok {
+	throws_ok {
 		$builder->build;
-	} 'se disparar un error por que dos categorias tiene una sola opcion posible';
-	like $@, qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'con un mensaje correspondiente';
+	} qr/No se pudieron asignar todas las subcategorias. Estas son las preasinaciones:/, 'con un mensaje correspondiente';
 }
 
 {
@@ -92,8 +88,7 @@ my $builder = Universo->actual->builder_personaje;
 	my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	#Entonces se disparar un error por que se trata de asignar 2 veces el mismo valor a dos subcategorias distintas
-	dies_ok {
+	throws_ok {
 		$builder->build;
-	} 'Se trata de asignar 2 veces el mismo valor a dos subcategorias distintas. Inaudito';
-	like $@, qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'con un mensaje correspondiente';
+	} qr/No se pudieron asignar todas las subcategorias. Estas son las preasinaciones:/, 'con un mensaje correspondiente';
 }

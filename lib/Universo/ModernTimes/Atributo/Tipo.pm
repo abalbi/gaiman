@@ -49,7 +49,14 @@ sub subcategoria {
 
 sub validos {
   my $self = shift;
+  $self->{_validos} = [] if !$self->{_validos};
   return $self->{_validos};
+}
+
+sub alteraciones {
+  my $self = shift;
+  $self->{_alteraciones} = {} if !$self->{_alteraciones};
+  return $self->{_alteraciones};
 }
 
 sub posibles {
@@ -63,15 +70,18 @@ sub posibles {
 
 sub validar {
   my $self = shift;
+  $logger->debug(Dumper [@_]);
   my $valor = shift;
-  my $valores = $valor; 
+  my $validos = shift;
+  $validos = $self->validos if not defined $validos;
+  my $valores = $valor;
   $valores = [$valor] if ref($valor) eq '';
   return 1 if !$self->validos;
-  return 1 if scalar @{$self->validos} eq 0;
+  return 1 if scalar @{$validos} eq 0;
   my $boo = 1;
   foreach my $val (@$valores) {
     $logger->trace("A validar: ".Gaiman->l($val)." contra ".Gaiman->l($valores));
-    if(!scalar grep {$_ eq $val} @{$self->validos}) {
+    if(!scalar grep {$_ eq $val} @{$validos}) {
       $boo = 0;
     }
   }
@@ -80,16 +90,16 @@ sub validar {
 
 sub alguno {
   my $self = shift;
-  my $contexto = shift;
+  my $builder = shift;
   if($self->{_alguno}) {
-  	return &{$self->{_alguno}}($self, $contexto);
+    return &{$self->{_alguno}}($self, $builder);
   }
-	if($self->validos) {
-		my $valor = $self->validos->[int rand scalar @{$self->validos}];
-		return $valor;
-	}
+  if(scalar @{$self->validos}) {
+    my $valor = $self->validos->[int rand scalar @{$self->validos}];
+    return $valor;
+  }
 	if($self->posibles) {
-		my $valor = $self->posibles($contexto)->[int rand scalar @{$self->posibles($contexto)}];
+		my $valor = $self->posibles($builder)->[int rand scalar @{$self->posibles($builder)}];
 		return $valor;
 	}
 	return undef;

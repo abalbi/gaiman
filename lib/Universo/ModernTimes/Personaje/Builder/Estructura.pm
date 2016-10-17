@@ -2,6 +2,7 @@ package ModernTimes::Personaje::Builder::Estructura;
 our $AUTOLOAD;
 use Data::Dumper;
 our $logger = Log::Log4perl->get_logger(__PACKAGE__);
+use Carp(cluck);
 
 use fields qw(_atributos _builder _hash _tipos);
   sub new {
@@ -19,11 +20,54 @@ use fields qw(_atributos _builder _hash _tipos);
     my $hash = {};
     foreach my $atributo (@$atributos) {
       my $nombre = $atributo->nombre;
-      $hash->{$nombre} = $self->$nombre;
+      $hash->{$nombre} = $self->argumentos->{$nombre} if !$hash->{$nombre};
+      $hash->{$nombre} = $self->personaje->$nombre if !$hash->{$nombre};
+      $hash->{$nombre} = $self->$nombre if !$hash->{$nombre};
     }
     return $hash;
   }
 
+
+  sub validar_punto_vs_libres {
+    my $self = shift;
+    my $key = shift;
+    my $puntos = shift;
+    if ($puntos > $self->sum_libres($key)) {
+      return 0;
+    } 
+    return 1;
+  }
+
+  sub validar_punto_vs_preasignados {
+    my $self = shift;
+    my $key = shift;
+    my $puntos = shift;
+    if ($puntos < $self->sum_preasignados($key)) {
+      return 0;
+    } 
+    return 1;
+  }
+
+  sub sum_libres {
+    my $self = shift;
+    my $key = shift;
+    my $atributos = $self->atributo_tipo($key);
+    my $sum = 0;
+    foreach my $atributo (@$atributos) {
+      my $nombre = $atributo->nombre;
+      $sum += $atributo->max;
+      if($self->es_previo($nombre)) {
+        $sum -= $atributo->max;      
+      } else {
+        if($self->$nombre) {
+          $sum -= $self->$nombre;
+        } else {
+          $sum -= $atributo->defecto;
+        }
+      }
+    }
+    return $sum;
+  }
 
   sub sum_defecto {
     my $self = shift;
@@ -36,35 +80,43 @@ use fields qw(_atributos _builder _hash _tipos);
     return $sum;
   }
 
-  sub validar_punto_vs_libres {
+  sub sum_preasignados {
     my $self = shift;
     my $key = shift;
-    my $puntos = shift;
-    if ($puntos > $self->sum_libres($key)) {
-      return 0;
-    } 
-    return 1;
+    my $atributos = $self->atributo_tipo($key);
+    my $sum = 0;
+    foreach my $atributo (@$atributos) {
+      my $nombre = $atributo->nombre;
+      if($self->es_previo($nombre)) {
+        $sum -= $atributo->defecto;
+        if(exists $self->argumentos->{$nombre}) {
+          return undef if ref $self->argumentos->{$nombre} ne '';
+          $sum += $self->argumentos->{$nombre};
+        } else {
+          $sum += $self->personaje->$nombre if $self->personaje->$nombre;
+        }
+      }
+    }
+    $logger->trace("SUM PREASIGNADOS: ", join(' + ', map {$_->nombre} @{$atributos}), " = ", $sum);
+    $sum = 0 if $sum < 0;
+    return $sum;
   }
 
-  sub validar_punto_vs_preseteados {
-    my $self = shift;
-    my $key = shift;
-    my $puntos = shift;
-    if ($puntos < $self->sum_preseteados($key)) {
-      return 0;
-    } 
-    return 1;
-  }
-
-  sub sum_preseteados {
+  sub sum_asignados {
     my $self = shift;
     my $key = shift;
     my $atributos = $self->atributo_tipo($key);
     my $sum = $self->sum($key);
     foreach my $atributo (@$atributos) {
       my $nombre = $atributo->nombre;
-      $sum -= $atributo->defecto;
+      if ($self->es_previo($nombre)) {
+        $sum -= $self->personaje->$nombre if $self->personaje->$nombre;
+        $sum -= $self->argumentos->{$nombre} if exists $self->argumentos->{$nombre};
+      } else {
+        $sum -= $atributo->defecto;
+      }
     }
+    $sum = 0 if $sum < 0;
     return $sum;
   }
 
@@ -76,26 +128,32 @@ use fields qw(_atributos _builder _hash _tipos);
     my $sum = 0;
     foreach my $atributo (@$atributos) {
       my $nombre = $atributo->nombre;
-      $sum += $self->$nombre;
+      my $val = 0;
+      $val = $self->argumentos->{$nombre} if !$val;
+      $val = $self->personaje->$nombre if !$val;
+      $val = $self->$nombre if !$val;
+      $val = $atributo->defecto if !$val;
+      return undef if ref $val ne '';
+      $sum += $val;
+      $logger->trace('SUM ',$nombre, ' => ', $val,
+        ' personaje: ', Gaiman->l($self->personaje->$nombre),
+        ' argumentos: ', Gaiman->l($self->argumentos->{$nombre}),
+        ' estructura: ', Gaiman->l($self->$nombre),
+      );
     }
+    $logger->trace("SUM: ", join(' + ', map {$_->nombre} @{$atributos}), " = ", $sum);
     return $sum;
-
   }
 
-  sub sum_libres {
+  sub personaje {
     my $self = shift;
-    my $key = shift;
-    my $atributos = $self->atributo_tipo($key);
-    my $sum = 0;
-    foreach my $atributo (@$atributos) {
-      my $nombre = $atributo->nombre;
-      $sum -= $self->$nombre if !$self->es_previo($nombre);
-      $sum += $atributo->max;
-      $sum -= $atributo->max if $self->es_previo($nombre); 
-    }
-    return $sum;
+    return $self->builder->personaje;
   }
 
+  sub argumentos {
+    my $self = shift;
+    return $self->builder->argumentos;
+  }
 
   sub es_previo {
     my $self = shift;
@@ -123,7 +181,10 @@ use fields qw(_atributos _builder _hash _tipos);
     my $array = [];
     foreach my $tipo (@$tipos) {
       my $nombre = $tipo->nombre;
-      $self->{_tipos}->{$nombre} = ModernTimes::Personaje::Builder::Estructura::Atributo->new($tipo) if !$self->{_tipos}->{$nombre};
+      if (!$self->{_tipos}->{$nombre}) {
+        $self->{_tipos}->{$nombre} = ModernTimes::Personaje::Builder::Estructura::Atributo->new($tipo);
+        $logger->trace("Se agrego al builder el atributo tipo ".Gaiman->l($nombre));
+      }
       push @$array, $self->{_tipos}->{$nombre};
     }
     return $array->[0] if scalar @$array == 1;
@@ -138,59 +199,13 @@ use fields qw(_atributos _builder _hash _tipos);
   sub atributo {
     my $self = shift;
     my $key = shift;
-    my $caller = [caller(2)]->[3].":".[caller(1)]->[2];
     my $parametro = shift;
-    my $original = $self->{_atributos}->{$key};
-    my $valor = $self->{_atributos}->{$key};
+    $logger->debug("Key: ", Gaiman->l($key), " Parametro: ", Gaiman->l($parametro) );
     my $atributo = $self->atributo_tipo($key);
+    $self->{_atributos}->{$key} = $atributo->defecto if !exists $self->{_atributos}->{$key};
     if(defined $parametro) {
-      if(!$atributo->validar($parametro)) {
-        $logger->logwarn("No es valido el valor ".Gaiman->l($parametro)." para el atributo ", $atributo->nombre);
-      } else {
-        $valor = $parametro;
-        if(ref $valor eq 'ARRAY') {
-          my $lista = Gaiman->l($valor);
-          $valor = $valor->[int rand scalar @$valor];
-          $logger->trace("$key => parametro RANDOM: ".Gaiman->l($lista)." -> ".Gaiman->l($valor)." desde $caller");
-        }
-        $self->{_atributos}->{$key} = $valor;
-        $logger->trace("$key => parametro: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
-        return $self->{_atributos}->{$key};
-      }
+      $self->{_atributos}->{$key} = $parametro;
     }
- 
-    if (!$atributo->es_vacio($self->{_atributos}->{$key})) {
-      $valor = $self->{_atributos}->{$key};
-      $logger->trace("$key => estructura: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
-      return $self->{_atributos}->{$key} ;
-    }
-    
-    if(exists $self->builder->argumentos->{$key}) {
-      my $valor = $self->builder->argumentos->{$key};
-      if(!$atributo->validar($valor) && !$atributo->es_vacio($valor)) {
-        $logger->logwarn("No es valido el valor $valor para el atributo ", $atributo->nombre);
-      } else {
-        if(ref $valor eq 'ARRAY') {
-          my $lista = Gaiman->l($valor);
-          $valor = $valor->[int rand scalar @$valor];
-          $logger->info("$key => argumento RANDOM: ".Gaiman->l($lista)." -> ".Gaiman->l($valor)." desde $caller");
-        }
-        $logger->trace("$key => argumento: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
-        $self->{_atributos}->{$key} = $valor;
-        return $self->{_atributos}->{$key};
-      }
-    }
-
-    if (!$atributo->es_vacio($self->builder->personaje->$key)) {
-      $valor = $self->builder->personaje->$key;
-      $logger->trace("$key => personaje: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
-    }
-    if ($atributo->es_vacio($valor)) {
-      $valor = $atributo->defecto;
-      $logger->trace("$key => defecto: ".Gaiman->l($original)." -> ".Gaiman->l($valor)." desde $caller");
-    }
-
-    $self->{_atributos}->{$key} = $valor;
     return $self->{_atributos}->{$key};
   }
 
@@ -212,6 +227,7 @@ use fields qw(_atributos _builder _hash _tipos);
 package ModernTimes::Personaje::Builder::Estructura::Atributo;
   our $AUTOLOAD;
   use fields qw(_tipo _validos);
+  use Data::Dumper;
   sub new {
     my $self = shift;
     my $args = shift;
@@ -232,8 +248,25 @@ package ModernTimes::Personaje::Builder::Estructura::Atributo;
     my $valor = shift;
     if(defined $valor) {
       $self->{_validos} = $valor;  
+      $logger->trace("Se seteo validos para ".Gaiman->l($self->nombre)." : ".Gaiman->l($valor));
     }
     return $self->{_validos} if exists $self->{_validos};
     return $self->{_tipo}->validos;    
+  }
+
+  sub alguno {
+    my $self = shift;
+    my $builder = shift;
+    if($self->validos) {
+      return $self->{_tipo}->alguno($builder, $self->validos, @_);
+    } else {
+      return $self->{_tipo}->alguno($builder,@_);
+    }
+  }
+
+  sub validar {
+    my $self = shift;
+    my $valor = shift;
+    return $self->{_tipo}->validar($valor, $self->validos);
   }
 1;

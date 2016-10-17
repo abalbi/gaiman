@@ -5,11 +5,16 @@ use Test::Exception;
 use Test::Output;
 use Data::Dumper;
 
+
+
 #Dado el uso de Gaiman
 use Gaiman;
 #Y tener una instancia de ModernTimes
 ModernTimes->new;
 #Y un builder de personaje
+
+$ModernTimes::Personaje::Builder::logger->level('TRACE');
+
 my $builder = Universo->actual->builder_personaje;
 {
 	#Cuando le hago build en un nuevo personaje y defino atributos en el build

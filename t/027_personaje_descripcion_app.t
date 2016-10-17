@@ -11,6 +11,9 @@ use Gaiman;
 #Y tener una instancia de ModernTimes
 ModernTimes->new;
 #Y un builder de personaje
+
+$ModernTimes::Personaje::Builder::logger->level('TRACE');
+
 my $builder = Universo->actual->builder_personaje;
 {
 	#Cuando le hago build a un personaje definiendo que es de app 5
@@ -20,6 +23,7 @@ my $builder = Universo->actual->builder_personaje;
 	#Entonces el personaje tendra datos de description body logicos
 	like $personaje->body->{size}, qr/^(M|L)$/, 'tiene size';
 }
+
 {
 	#Cuando le hago build a un personaje definiendo que es de app 4
 	my $personaje = ModernTimes::Personaje->new;

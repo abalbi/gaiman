@@ -2,6 +2,7 @@ package ModernTimes;
 use strict;
 use base qw(Universo);
 use Universo::ModernTimes::Atributo::Tipo;
+use Universo::ModernTimes::Comun;
 use Universo::ModernTimes::Atributo::Tipo::Fecha;
 use Universo::ModernTimes::Atributo::Tipo::Hash;
 use Universo::ModernTimes::Atributo::Tipo::Lista;
@@ -76,20 +77,12 @@ sub init {
     },
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
+    nombre => 'concept'
+  });
+  push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
     nombre => 'profesion',
     validos => [qw(secretari[a|o])],
-    alteraciones => [
-     # {atributo => 'age', valor => [21..40]},
-     {atributo => 'appearance', valor => [5]},
-     # {atributo => 'manipulation', valor => [3..5]},
-     # {atributo => 'academics', valor => [2..5]},
-     # {atributo => 'computer', valor => [2..3]},
-     # {atributo => 'linguistics', valor => [2..3]},
-     # {atributo => 'politics', valor => [1]},
-     # {atributo => 'finance', valor => [1]},
-     # {atributo => 'subterfuge', valor => [1..2]},
-     # {atributo => 'etiquette', valor => [1..3]},
-    ],
+    alteraciones => {},
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Fecha->new({
     nombre => 'date_birth',
@@ -222,6 +215,7 @@ sub init {
     categoria => 'advantage',
     subcategoria => 'background',
   })} qw(allies contacts fame influence mentor resources);
+  ModernTimes::Comun->init;
 
   Gaiman->logger->trace('Se agregaron los atributo_tipos: ', join ',', sort map {$_->nombre} @{$self->atributo_tipos});
 }

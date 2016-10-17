@@ -77,7 +77,7 @@ my $builder = Universo->actual->builder_personaje;
 	$builder->personaje($personaje);
 	throws_ok {
 		$builder->build({conviction => 5, instinct => 5});
-	} qr/\[SUBCATEROGIA\] \w+: menos puntos \(\d+\) que preseteados \(\d+\)/, 'da un error';
+	} qr/Para \w+ los puntos asignados\(\d+\) son menores a los puntos preasignados\(\d+\)/, 'da un error';
 	
 }
 

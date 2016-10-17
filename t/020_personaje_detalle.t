@@ -6,6 +6,8 @@ use Test::Exception;
 use Test::Output;
 use Data::Dumper;
 
+$ModernTimes::Personaje::Builder::logger->level('TRACE');
+
 #Dado el uso de Gaiman
 use Gaiman;
 #Y tener una instancia de ModernTimes

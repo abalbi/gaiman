@@ -56,6 +56,7 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
     $self->argumentos($args);
     $logger->info('[ARGS] '.Gaiman->l($args));
     $self->estructura->clean;
+    $self->comando_carga('concept');
     $self->comando_carga('profesion');
     $self->comando_carga('sex');
     $self->comando_carga('age');
