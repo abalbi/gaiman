@@ -1,0 +1,26 @@
+alejandro.balbi@AR-IT09402:~/dev/gaiman(master)$ ./scripts/gaiman --build personaje --detalle --log INFO --srand 1028
+[12] [INFO] Random: 1028 - Gaiman::new:32 
+[13] [INFO] Se instancio Gaiman - Gaiman::new:34 
+[13] [INFO] Runner argumentos:{"build":"personaje","random":null,"log":"INFO","json":null,"detalle":1,"tipo":null,"srand":"1028"} - Gaiman::runner:104 
+[124] [INFO] Se instancio ModernTimes::Evento::Builder - ModernTimes::Evento::Builder::new:12 
+[124] [INFO] Se instancio Entorno - Entorno::new:12 
+
+Lucia
+detective
+attribute
+physical: strengh: 3; dexterity: 2; stamina: 3
+social: charisma: 2; manipulation: 4; appearance: 4
+mental: perception: 2; intelligence: 2; wits: 2
+ability
+talent: brawl: 1; dodge: 2; streetwise: 2
+skill: drive: 4; etiquette: 1; firearms: 2; performance: 1; survival: 1
+knowledge: bureaucracy: 1; computer: 2; finance: 1; investigation: 2; law: 3; linguistics: 1; research: 2; science: 1
+advantage
+virtues: conviction: 4; instinct: 2; courage: 4
+background: allies: 1; contacts: 3; fame: 1; mentor: 1; resources: 1
+Lucia es rubia de pelo largo y lacio. Sus ojos son verdes. Tiene 25 años. Mide 1.79, pesa 61 kg y sus medidas son 91-60-91.
+edad: 25
+cuerpo:
+height: 1.79; bust: 91; hip: 91; waist: 60; weight: 61; size: M
+biografia:
+1965-06-01T00:00:00: Lucia nace el 01 de Jun de 1965 a las 00:00.

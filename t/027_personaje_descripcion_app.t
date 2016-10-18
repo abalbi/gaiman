@@ -12,7 +12,7 @@ use Gaiman;
 ModernTimes->new;
 #Y un builder de personaje
 
-$ModernTimes::Personaje::Builder::logger->level('TRACE');
+$ModernTimes::Personaje::Builder::logger->level('INFO');
 
 my $builder = Universo->actual->builder_personaje;
 {
@@ -40,9 +40,11 @@ my $builder = Universo->actual->builder_personaje;
 	#Entonces el personaje tendra datos de description body logicos
 	like $personaje->body->{size}, qr/^(XS|S|M|L|XL)$/, 'tiene size';
 }
+
 {
 	#Cuando le hago build a un personaje definiendo que es de app 2
 	my $personaje = ModernTimes::Personaje->new;
+	$personaje->concept('drifter');
 	$builder->personaje($personaje);
 	$builder->build({appearance => 2});
 	#Entonces el personaje tendra datos de description body logicos
@@ -56,3 +58,4 @@ my $builder = Universo->actual->builder_personaje;
 	#Entonces el personaje tendra datos de description body logicos
 	like $personaje->body->{size}, qr/^(XS|S|L|XL)$/, 'tiene size';
 }
+exit;
