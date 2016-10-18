@@ -3,6 +3,7 @@ use strict;
 use base qw(ModernTimes::Atributo::Tipo);
 use fields qw();
 use Data::Dumper;
+use Gaiman::Util;
 
 sub max {
 	my $self = shift;
@@ -14,7 +15,7 @@ sub alguno {
   my $builder = shift;
   my $valor = shift;
   if (defined $valor) {
-    return $valor->[int rand scalar @{$valor}];
+    return azar $valor;
   }
   return $self->SUPER::alguno();
 }

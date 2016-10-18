@@ -3,7 +3,7 @@ use strict;
 use fields qw(_nombre _validos _posibles _subcategoria _categoria _alguno _crear_eventos _alteraciones);
 use Data::Dumper;
 use JSON;
-
+use Gaiman::Util;
 our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 
 
@@ -98,11 +98,11 @@ sub alguno {
     return &{$self->{_alguno}}($self, $builder, @_);
   }
   if(scalar @{$self->validos}) {
-    my $valor = $self->validos->[int rand scalar @{$self->validos}];
+    my $valor = azar $self->validos;
     return $valor;
   }
 	if($self->posibles) {
-		my $valor = $self->posibles($builder)->[int rand scalar @{$self->posibles($builder)}];
+		my $valor = azar $self->posibles($builder);
 		return $valor;
 	}
 	return undef;

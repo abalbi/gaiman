@@ -82,6 +82,7 @@ use fields qw(_key _puntos _builder _stash _hecho);
 
 package ModernTimes::Personaje::Builder::Comando::Categoria;
 use Data::Dumper;
+use Gaiman::Util;
 use base qw(ModernTimes::Personaje::Builder::Comando);
 our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 
@@ -161,7 +162,7 @@ our $logger = Log::Log4perl->get_logger(__PACKAGE__);
       # RANDOM
       foreach my $puntos (sort keys %$hash) {
         my $subcategorias = [sort keys %{$hash->{$puntos}}];
-        my $subcategoria = $subcategorias->[int rand scalar @$subcategorias];
+        my $subcategoria = azar $subcategorias;
         $self->asignar_puntos_a_subcat($hash, $puntos, $subcategoria);
       }
 
@@ -204,6 +205,7 @@ package ModernTimes::Personaje::Builder::Comando::Subcategoria;
 use base qw(ModernTimes::Personaje::Builder::Comando);
 our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 use Data::Dumper;
+use Gaiman::Util;
 
 sub _hacer {
   my $self = shift;
@@ -237,7 +239,7 @@ sub _hacer {
       my $nombre = $atributo->nombre;
       if ($self->estructura->es_previo($nombre)) {
         $logger->trace($nombre, ' esta preasignados :'.Gaiman->l($valores->{$nombre})) ;
-        $valores->{$nombre} = $valores->{$nombre}->[int rand scalar @{$valores->{$nombre}}] if ref $valores->{$nombre} eq 'ARRAY';
+        $valores->{$nombre} = azar $valores->{$nombre} if ref $valores->{$nombre} eq 'ARRAY';
         $count = $count - $valores->{$nombre} + $atributo->defecto;
       } else {
         $valores->{$nombre} = $atributo->defecto if not defined $val;
@@ -251,7 +253,7 @@ sub _hacer {
     while($count) {
       $c++;
       die "Recusion infinita" if $c == 15;
-      my $atributo = $atributos->[int rand scalar @$atributos];
+      my $atributo = azar $atributos;
       my $nombre = $atributo->nombre;
       next if $self->estructura->es_previo($nombre);
       my $val = $valores->{$nombre};
@@ -268,7 +270,7 @@ sub _hacer {
   }
   foreach my $atributo (@{$atributos}) {
     my $nombre = $atributo->nombre;
-    $valores->{$nombre} = $valores->{$nombre}->[int rand scalar @{$valores->{$nombre}}] if ref $valores->{$nombre} eq 'ARRAY';
+    $valores->{$nombre} = azar $valores->{$nombre} if ref $valores->{$nombre} eq 'ARRAY';
     $self->builder->comando_carga($nombre, $valores->{$nombre});
     $self->builder->comando_ultimo->hacer;
   }
@@ -282,6 +284,7 @@ package ModernTimes::Personaje::Builder::Comando::Atributo;
 use base qw(ModernTimes::Personaje::Builder::Comando);
 our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 use Data::Dumper;
+use Gaiman::Util;
 
   sub puntos {
     my $self = shift;
@@ -297,7 +300,7 @@ use Data::Dumper;
     my $valor = $self->puntos;
     my $atributo = $self->estructura->atributo_tipo($key);
     $self->stash({$key => $self->estructura->$key});
-    $valor = $valor->[int rand scalar @$valor] if ref $valor eq 'ARRAY';
+    $valor = azar $valor if ref $valor eq 'ARRAY';
     if(!$atributo->es_vacio($valor)) {
       $logger->logdie("[COMANDO ATRIBU] No se valido $valor para el atributo $key ".Gaiman->l($atributo->validos)) if !$atributo->validar($valor);
     } else {

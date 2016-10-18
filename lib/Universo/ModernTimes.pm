@@ -20,7 +20,7 @@ use Data::Dumper;
 use DateTime;
 use List::Util qw(shuffle);
 use JSON;
-
+use Gaiman::Util;
 
 our $logger = Log::Log4perl->get_logger(__PACKAGE__);
 
@@ -73,7 +73,7 @@ sub init {
     nombre => 'age',
     alguno => sub {
       my $atributo_tipo = shift;
-      return 15 + int rand 25;
+      return 15 + azar 25;
     },
   });
   push @{$self->atributo_tipos}, ModernTimes::Atributo::Tipo::Lista->new({
@@ -95,10 +95,10 @@ sub init {
         eval {
           $date_birth = DateTime->new(
             year  => Universo->actual->base_date->year - $age,
-            month => 1 + int rand 12,
-            day => 1 + int rand 31,
-            hour => int rand 24,
-            minute => int rand 60,
+            month => 1 + azar 12,
+            day => 1 + azar 31,
+            hour => azar 24,
+            minute => azar 60,
           );
         };
         if($@) {
@@ -346,14 +346,14 @@ sub init {
           push @$sizes, $key if scalar grep {$_ == $appearance} @{$rangos->{appearance}};
         }
       }
-      $size = $sizes->[int rand scalar @{$sizes}];
+      $size = azar $sizes;
     }
     $hash->{size} = $size;
-    my $size_rango = $tbl->{$size}->[int rand scalar @{$tbl->{$size}}];
-    my $height = $size_rango->{rango_altura}->[int rand scalar @{$size_rango->{rango_altura}}];
+    my $size_rango = azar $tbl->{$size};
+    my $height = azar $size_rango->{rango_altura};
     $height = $height / 100;
     $hash->{height} = $height;
-    my $weight = $size_rango->{rango_peso}->[int rand scalar @{$size_rango->{rango_peso}}];
+    my $weight = azar $size_rango->{rango_peso};
     $hash->{weight} = $weight;
 
     my $imc = $weight /($height * $height);
@@ -361,10 +361,10 @@ sub init {
     foreach my $imc_rango (@{$self->tabla_biometrica_imc}) {
       if($imc > $imc_rango->{rango}->[0] && $imc < $imc_rango->{rango}->[$#{$imc_rango->{rango}}]) {
         my $nombre = $imc_rango->{nombre};
-        $figura = $imc_rango->{figuras}->[int rand scalar @{$imc_rango->{figuras}}];
-        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $appearance) * (int rand 3));
-        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $appearance) * (int rand 3));
-        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $appearance) * (int rand 3));
+        $figura = azar $imc_rango->{figuras};
+        $hash->{bust} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[0] + ((5 - $appearance) * (azar 3));
+        $hash->{waist} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[1] + ((5 - $appearance) * (azar 3));
+        $hash->{hip} = $self->tabla_biometrica_figuras->{$figura}->{medidas}->[2] + ((5 - $appearance) * (azar 3));
       } 
     }
 

@@ -12,6 +12,7 @@ use Entorno;
 use Universo;
 use Universo::ModernTimes;
 use Data::Dumper;
+use Gaiman::Util;
 
 Log::Log4perl->init("log.conf");
 our $logger = Log::Log4perl->get_logger("runner");
@@ -26,7 +27,7 @@ our $instancia;
     $arg->{srand}  = $arg->{srand} ? $arg->{srand} : 8094;
     $arg->{log}    = $arg->{log} ? $arg->{log} : q(OFF);
     $Gaiman::logger->level( $arg->{log} );
-    $arg->{srand} = int rand 10000 if $arg->{random};
+    $arg->{srand} = azar 10000 if $arg->{random};
     srand($arg->{srand});
     $logger->info("Random: ".$arg->{srand});
     $self = fields::new($self);
@@ -142,6 +143,7 @@ our $instancia;
     return $str;
   }
 
+
   sub install {
     my $self = shift;
     Gaiman::logger->info('Dando permisos a gaiman');
@@ -176,3 +178,4 @@ our $instancia;
     }
   }
 1;
+
